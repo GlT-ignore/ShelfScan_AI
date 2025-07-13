@@ -1,0 +1,204 @@
+# ShelfScan AI - Product Requirements Document
+
+## Overview  
+ShelfScan AI is a drone-powered, real-time inventory monitoring system that transforms retail shelf management. The system uses FPV drones equipped with computer vision (YOLOv8) to autonomously scan store shelves, instantly detecting product counts and stock levels. This data streams to a responsive web dashboard, enabling store staff and managers to receive immediate alerts for empty or low-stock shelves and take action within seconds of detection.
+
+**Problem**: Traditional inventory management relies on manual counts, leading to stockouts, overstocking, and lost sales. Staff discover empty shelves only when customers complain or during scheduled checks.
+
+**Solution**: Real-time, automated shelf monitoring that provides instant visibility into stock levels, proactive alerts, and actionable insights for immediate restocking decisions.
+
+**Target Users**: Store managers, inventory coordinators, and floor staff who need immediate visibility into shelf conditions to prevent stockouts and optimize restocking workflows.
+
+## Core Features  
+
+### 1. Real-Time Inventory Dashboard
+**What it does**: Displays live inventory status across all store shelves with visual indicators (Green=OK, Yellow=Low, Red=Empty)
+**Why it's important**: Provides instant visibility into store-wide inventory status, preventing stockouts through proactive monitoring
+**How it works**: Shelf cards show current stock levels, last scan time, and status. Updates automatically when drone scans detect changes.
+
+### 2. Intelligent Alert System  
+**What it does**: Generates immediate notifications when shelves reach low stock or empty status
+**Why it's important**: Enables proactive restocking before customers notice empty shelves, preventing lost sales
+**How it works**: Alert banner shows most urgent issues, dedicated alerts page lists all actionable items with specific location and product details.
+
+### 3. Staff Action Workflow
+**What it does**: Provides "Mark Restocked" and "Rescan Shelf" buttons for staff to update inventory status
+**Why it's important**: Closes the loop between detection and resolution, ensuring accurate real-time data
+**How it works**: One-click actions update shelf status, clear alerts, and can trigger drone rescans for verification.
+
+### 4. Detailed Shelf Views
+**What it does**: Shows comprehensive product-level information for each shelf including counts, thresholds, and visual confirmation
+**Why it's important**: Provides context for restocking decisions and visual verification of drone scan accuracy
+**How it works**: Modal or dedicated page displaying all products on a shelf with current counts, low-stock thresholds, and optional shelf photos with highlighted empty spots.
+
+### 5. Mobile-First Responsive Design
+**What it does**: Ensures full functionality on mobile devices for staff working on the floor
+**Why it's important**: Store staff are mobile and need real-time access to inventory data while restocking
+**How it works**: Touch-friendly interface with large action buttons, collapsible navigation, and vertical card layouts for mobile screens.
+
+## User Experience  
+
+### User Personas
+**Primary**: Store Manager Sarah (needs overview of all shelves, historical data, and alert management)
+**Secondary**: Floor Staff Mike (needs specific alerts for his assigned aisles and quick action buttons)
+
+### Key User Flows
+1. **Morning Check**: Manager opens dashboard → sees overnight alerts → assigns restocking tasks
+2. **Alert Response**: Staff receives low-stock notification → views shelf details → restocks → marks complete
+3. **Verification**: Staff requests rescan after restocking → confirms alert clearance → continues workflow
+
+### UI/UX Considerations
+- **Glanceable Status**: Color-coded shelf cards enable instant status recognition
+- **Action-Oriented**: Every alert includes clear next steps and one-click actions
+- **Mobile Optimization**: Touch targets sized for gloved hands, offline tolerance for poor connectivity
+- **Minimal Training**: Intuitive icons and labels requiring no specialized knowledge
+
+## Technical Architecture  
+
+### System Components
+- **Frontend**: Next.js 14 (App Router) with Tailwind CSS for rapid styling
+- **Real-Time Updates**: WebSocket connection with polling fallback for reliability
+- **State Management**: React Context + useReducer for global state
+- **Data Simulation**: Mock JSON feed for demo reliability
+- **Responsive Design**: Mobile-first approach with progressive enhancement
+
+### Data Models
+```typescript
+interface Product {
+  product: string;
+  count: number;
+  threshold: number;
+}
+
+interface Shelf {
+  id: string;
+  aisle: string;
+  items: Product[];
+  status: 'ok' | 'low' | 'empty';
+  lastScanned: string;
+  imageUrl?: string;
+}
+
+interface Alert {
+  id: string;
+  shelf: string;
+  product: string;
+  type: 'low' | 'empty';
+  timestamp: string;
+  acknowledged: boolean;
+}
+```
+
+### APIs and Integrations
+- **Scan Updates**: WebSocket endpoint receiving real-time drone scan results
+- **Action API**: REST endpoints for staff actions (mark restocked, rescan requests)
+- **Demo Mode**: Simulated data feed for reliable demo presentations
+
+### Infrastructure Requirements
+- **Development**: Local Next.js server with mock data simulation
+- **Demo**: Deployed to Vercel/Netlify for accessible demo URL
+- **Fallback**: Static backup with pre-recorded state changes
+
+## Development Roadmap  
+
+### Phase 1: Foundation (Day 1 Morning)
+- Next.js project setup with Tailwind CSS
+- Core TypeScript interfaces and data models
+- ShelfCard component with status visualization
+- Mock data generation with realistic product scenarios
+- Basic responsive layout structure
+
+### Phase 2: Core Dashboard (Day 1 Afternoon)
+- Dashboard layout with shelf grid
+- Alert banner and notification system
+- Basic state management with Context API
+- Shelf detail modal with product listings
+- Mobile responsive design implementation
+
+### Phase 3: Real-Time Features (Day 2 Morning)
+- WebSocket integration for live updates
+- Polling fallback mechanism
+- Staff action buttons (mark restocked, rescan)
+- Alert management and clearance workflow
+- Smooth UI transitions and loading states
+
+### Phase 4: Demo Polish (Day 2 Afternoon)
+- Demo simulation script with controlled scenarios
+- Error handling and fallback options
+- Performance optimization for smooth demo
+- Visual polish with animations and micro-interactions
+- Cross-device testing and bug fixes
+
+### Future Enhancements (Post-Hackathon)
+- User authentication and role-based access
+- Historical analytics and reporting
+- Integration with existing POS/inventory systems
+- Advanced AI features (demand prediction, optimization)
+- Multi-store management and deployment
+
+## Logical Dependency Chain
+
+### Foundation First (Critical Path)
+1. **Data Models & Types**: Must define interfaces before building components
+2. **ShelfCard Component**: Core UI element that everything else builds upon
+3. **Mock Data System**: Enables parallel development while backend is built
+4. **Basic Layout**: Foundation for all subsequent features
+
+### Rapid Visible Progress
+1. **Static Dashboard**: Immediate visual progress with mock data
+2. **Alert System**: Demonstrates core value proposition
+3. **Status Updates**: Shows real-time capability with simulated data
+4. **Action Buttons**: Completes the user workflow loop
+
+### Demo-Ready Features
+1. **Controlled Simulation**: Reliable demo scenarios
+2. **Error Handling**: Graceful fallbacks for demo stability
+3. **Mobile Testing**: Ensures demo works on all devices
+4. **Performance Polish**: Smooth interactions for impressive demo
+
+## Risks and Mitigations  
+
+### Technical Challenges
+**Risk**: WebSocket connection failures during demo
+**Mitigation**: Implement polling fallback and manual trigger buttons for controlled demo
+
+**Risk**: Backend integration delays
+**Mitigation**: Build with mock data first, swap in real API calls later
+
+**Risk**: Mobile performance issues
+**Mitigation**: Test on actual devices early, optimize for 60fps interactions
+
+### MVP Scope Management
+**Risk**: Feature creep reducing core functionality quality
+**Mitigation**: Focus on 3 core user stories, defer advanced features to post-hackathon
+
+**Risk**: Complex state management causing bugs
+**Mitigation**: Use simple Context API, avoid over-engineering with external libraries
+
+### Demo Reliability
+**Risk**: Live demo failures due to network/hardware issues
+**Mitigation**: Prepare static backup, pre-recorded sequences, and manual triggers
+
+**Risk**: Unrealistic demo scenarios
+**Mitigation**: Use authentic retail data, realistic product names, and believable stock levels
+
+## Appendix  
+
+### Technical Specifications
+- **Framework**: Next.js 14 with App Router
+- **Styling**: Tailwind CSS with custom components
+- **Icons**: Lucide React for consistent iconography
+- **Deployment**: Vercel for instant deployment and demo URLs
+- **Testing**: Manual testing focused on demo scenarios
+
+### Research Findings
+- Store staff prefer visual indicators over text-heavy interfaces
+- Mobile usage is critical for floor staff workflow
+- Real-time updates must be sub-3-second for perceived immediacy
+- One-click actions are essential for busy retail environments
+
+### Demo Script Requirements
+- **Setup**: 10-15 shelves with mixed status levels
+- **Scenario**: Empty shelf detection → alert → staff action → resolution
+- **Timing**: 2-minute demo showing complete workflow
+- **Fallback**: Static slides if technical issues occur 

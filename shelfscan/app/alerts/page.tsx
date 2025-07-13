@@ -265,11 +265,16 @@ const AlertRow: React.FC<AlertRowProps> = ({ alert, onAcknowledge, onViewShelf }
 const AlertsPageContent: React.FC = () => {
   const { alerts, acknowledgeAlert } = useAlerts();
   
-  const [filters, setFilters] = useState({
-    type: 'all' as const,
-    status: 'all' as const,
+  const [filters, setFilters] = useState<{
+    type: 'all' | 'empty' | 'low';
+    status: 'all' | 'acknowledged' | 'unacknowledged';
+    search: string;
+    dateRange: 'all' | 'today' | 'week' | 'month';
+  }>({
+    type: 'all',
+    status: 'all',
     search: '',
-    dateRange: 'all' as const
+    dateRange: 'all'
   });
 
   const filteredAlerts = useMemo(() => {
