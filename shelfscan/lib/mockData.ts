@@ -491,7 +491,7 @@ export function simulateStaffAction(
   type: 'restock' | 'acknowledge' | 'rescan',
   targetId: string,
   shelves?: Shelf[]
-): { success: boolean; message: string; data?: any } {
+): { success: boolean; message: string; data?: object } {
   switch (type) {
     case 'restock':
       return {
@@ -876,7 +876,7 @@ export function runComprehensiveValidation(): {
  */
 export function generateDemoReport(): {
   timestamp: string;
-  dataOverview: any;
+  dataOverview: Record<string, unknown>;
   demoReadiness: {
     score: number;
     recommendations: string[];

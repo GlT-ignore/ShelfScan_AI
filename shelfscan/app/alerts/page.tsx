@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { AppProvider, useAlerts, useStaffActions } from '../../lib/context/AppContext';
+import { AppProvider, useAlerts } from '../../lib/context/AppContext';
 import { Alert } from '../../lib/types';
 import { MobileNavigation } from '../../components/MobileNavigation';
 import { 

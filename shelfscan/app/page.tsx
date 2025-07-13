@@ -305,7 +305,7 @@ const Dashboard: React.FC = () => {
   const { shelves } = useShelves();
   const { alerts } = useAlerts();
   const { markRestocked, requestRescan } = useStaffActions();
-  const { connectionStatus, isConnected } = useRealTimeUpdates();
+  const { connectionStatus } = useRealTimeUpdates();
   const router = useRouter();
   
   const [filter, setFilter] = useState<'all' | 'ok' | 'low' | 'empty'>('all');
@@ -362,7 +362,7 @@ const Dashboard: React.FC = () => {
       {/* HEADER */}
       <DashboardHeader 
         connectionStatus={connectionStatus}
-        isConnected={isConnected}
+        isConnected={true} // This prop is no longer used, but kept for consistency
       />
 
       {/* MAIN CONTENT */}

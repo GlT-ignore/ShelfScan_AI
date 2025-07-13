@@ -17,7 +17,6 @@ const DemoController: React.FC = () => {
     isDemoMode 
   } = useAppContext();
   
-  const [isOpen, setIsOpen] = useState(false);
 
   const handleTriggerAlert = () => {
     triggerDemoAlert();
