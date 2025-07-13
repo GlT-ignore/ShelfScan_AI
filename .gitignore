@@ -1,0 +1,13 @@
+.env  
+.cursor/  
+.taskmaster/  
+node_modules/  
+.next/  
+.turbo/  
+dist/  
+build/  
+coverage/  
+.vscode/  
+.idea/  
+.DS_Store  
+Thumbs.db 
