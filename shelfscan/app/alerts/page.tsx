@@ -10,7 +10,7 @@
 import React, { useState, useMemo } from 'react';
 import { AppProvider, useAlerts, useStaffActions } from '../../lib/context/AppContext';
 import { Alert } from '../../lib/types';
-import { MobileNavigation, DesktopNavigation } from '../../components/MobileNavigation';
+import { MobileNavigation } from '../../components/MobileNavigation';
 import { 
   ArrowLeft,
   Filter, 
@@ -264,7 +264,6 @@ const AlertRow: React.FC<AlertRowProps> = ({ alert, onAcknowledge, onViewShelf }
 
 const AlertsPageContent: React.FC = () => {
   const { alerts, acknowledgeAlert } = useAlerts();
-  const { markRestocked } = useStaffActions();
   
   const [filters, setFilters] = useState({
     type: 'all' as const,

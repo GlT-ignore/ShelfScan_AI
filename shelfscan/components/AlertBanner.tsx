@@ -3,7 +3,6 @@
 import React from 'react';
 import { Alert } from '../lib/types';
 import { AlertTriangle, Bell } from 'lucide-react';
-import Link from 'next/link';
 
 interface AlertBannerProps {
   alerts: Alert[];

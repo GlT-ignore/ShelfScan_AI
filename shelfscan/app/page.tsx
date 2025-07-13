@@ -16,7 +16,6 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { MobileNavigation, DesktopNavigation } from '../components/MobileNavigation';
 import { 
   Filter, 
-  RotateCcw, 
   Wifi, 
   WifiOff,
   AlertTriangle,
@@ -35,16 +34,7 @@ const RealTimeStatus: React.FC<{
   connectionStatus: 'connected' | 'polling' | 'disconnected';
   isConnected: boolean;
 }> = ({ connectionStatus, isConnected }) => {
-  const [lastUpdate] = useState<Date>(new Date());
   const [recentUpdate, setRecentUpdate] = useState(false);
-
-  // Update timestamp periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Update timestamp logic here if needed
-    }, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
 
   // Show pulse effect for recent updates
   useEffect(() => {

@@ -1,10 +1,5 @@
 'use client';
 
-/**
- * ShelfScan AI Dashboard - Main Page
- * Displays real-time inventory status across all store shelves
- */
-
 import React, { useState } from 'react';
 import { useAppContext } from '../lib/context/AppContext';
 import { 
