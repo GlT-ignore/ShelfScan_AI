@@ -157,7 +157,7 @@ export function generateMockShelves(): Shelf[] {
  */
 function ensureDemoDistribution(shelves: Shelf[]): void {
   // Force at least 2 empty shelves
-  let emptyCount = shelves.filter(s => s.status === 'empty').length;
+  const emptyCount = shelves.filter(s => s.status === 'empty').length;
   if (emptyCount < 2) {
     for (let i = 0; i < 2 - emptyCount && i < shelves.length; i++) {
       const shelf = shelves[i];
@@ -169,7 +169,7 @@ function ensureDemoDistribution(shelves: Shelf[]): void {
   }
   
   // Force at least 3 low-stock shelves
-  let lowCount = shelves.filter(s => s.status === 'low').length;
+  const lowCount = shelves.filter(s => s.status === 'low').length;
   if (lowCount < 3) {
     for (let i = 0; i < 3 - lowCount && i < shelves.length; i++) {
       const shelf = shelves[Math.floor(Math.random() * shelves.length)];
