@@ -32,8 +32,7 @@ import { useRouter } from 'next/navigation';
 
 const RealTimeStatus: React.FC<{ 
   connectionStatus: 'connected' | 'polling' | 'disconnected';
-  isConnected: boolean;
-}> = ({ connectionStatus, isConnected }) => {
+}> = ({ connectionStatus }) => {
   const [recentUpdate, setRecentUpdate] = useState(false);
 
   // Show pulse effect for recent updates
@@ -96,8 +95,7 @@ const RealTimeStatus: React.FC<{
 
 const DashboardHeader: React.FC<{ 
   connectionStatus: 'connected' | 'polling' | 'disconnected';
-  isConnected: boolean;
-}> = ({ connectionStatus, isConnected }) => {
+}> = ({ connectionStatus }) => {
   const [isMounted, setIsMounted] = useState(false);
   const { alerts } = useAlerts();
   
@@ -128,7 +126,6 @@ const DashboardHeader: React.FC<{
               <div className="hidden sm:block">
                 <RealTimeStatus 
                   connectionStatus={connectionStatus}
-                  isConnected={isConnected}
                 />
               </div>
             </div>
@@ -140,7 +137,6 @@ const DashboardHeader: React.FC<{
             <div className="block sm:hidden">
               <RealTimeStatus 
                 connectionStatus={connectionStatus}
-                isConnected={isConnected}
               />
             </div>
             
@@ -362,7 +358,6 @@ const Dashboard: React.FC = () => {
       {/* HEADER */}
       <DashboardHeader 
         connectionStatus={connectionStatus}
-        isConnected={true} // This prop is no longer used, but kept for consistency
       />
 
       {/* MAIN CONTENT */}

@@ -654,7 +654,7 @@ export function validateMockShelves(shelves: Shelf[]): {
   }
   
   // Validate timestamps
-  shelves.forEach((shelf, index) => {
+  shelves.forEach((shelf) => {
     try {
       new Date(shelf.lastScanned);
     } catch {
