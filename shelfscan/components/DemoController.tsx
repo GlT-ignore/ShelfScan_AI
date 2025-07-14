@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAlerts, useShelves } from '../lib/context/AppContext';
-import { generateRandomScanUpdate, generateMockData } from '../lib/mockData';
+import { generateRandomScanUpdate } from '../lib/mockData';
 import { Alert } from '../lib/types';
 import { 
   RotateCcw, 
