@@ -557,6 +557,7 @@ const useDemoController = () => {
       // Attempt emergency reset
       try {
         resetDemo();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_resetError) {
         setError('Critical failure: Unable to reset demo state. Please refresh the page.');
       }

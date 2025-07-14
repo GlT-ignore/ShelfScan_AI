@@ -35,7 +35,12 @@ interface FilterControlsProps {
     search: string;
     dateRange: 'all' | 'today' | 'week' | 'month';
   };
-  onFiltersChange: (filters: any) => void;
+  onFiltersChange: (filters: {
+    type: 'all' | 'empty' | 'low';
+    status: 'all' | 'acknowledged' | 'unacknowledged';
+    search: string;
+    dateRange: 'all' | 'today' | 'week' | 'month';
+  }) => void;
   onClearFilters: () => void;
 }
 
@@ -90,7 +95,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         {/* ALERT TYPE - Touch-optimized */}
         <select
           value={filters.type}
-          onChange={(e) => onFiltersChange({ ...filters, type: e.target.value as any })}
+          onChange={(e) => onFiltersChange({ ...filters, type: e.target.value as 'all' | 'empty' | 'low' })}
           className="border-2 border-gray-300 rounded-lg px-4 py-3 min-h-[48px] text-sm font-medium
                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation bg-white"
         >
@@ -102,7 +107,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         {/* ACKNOWLEDGMENT STATUS - Touch-optimized */}
         <select
           value={filters.status}
-          onChange={(e) => onFiltersChange({ ...filters, status: e.target.value as any })}
+          onChange={(e) => onFiltersChange({ ...filters, status: e.target.value as 'all' | 'acknowledged' | 'unacknowledged' })}
           className="border-2 border-gray-300 rounded-lg px-4 py-3 min-h-[48px] text-sm font-medium
                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation bg-white"
         >
@@ -115,7 +120,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         <div className="sm:col-span-2">
           <select
             value={filters.dateRange}
-            onChange={(e) => onFiltersChange({ ...filters, dateRange: e.target.value as any })}
+            onChange={(e) => onFiltersChange({ ...filters, dateRange: e.target.value as 'all' | 'today' | 'week' | 'month' })}
             className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 min-h-[48px] text-sm font-medium
                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation bg-white"
           >

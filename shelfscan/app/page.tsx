@@ -33,7 +33,8 @@ import { useRouter } from 'next/navigation';
 const RealTimeStatus: React.FC<{ 
   connectionStatus: 'connected' | 'polling' | 'disconnected';
   isConnected: boolean;
-}> = ({ connectionStatus, isConnected: _isConnected }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+}> = ({ connectionStatus, isConnected }) => {
   const [recentUpdate, setRecentUpdate] = useState(false);
 
   // Update timestamp periodically
@@ -217,7 +218,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           <Filter size={16} className="text-gray-400" />
           <select 
             value={filter}
-            onChange={(e) => onFilterChange(e.target.value as any)}
+            onChange={(e) => onFilterChange(e.target.value as 'all' | 'ok' | 'low' | 'empty')}
             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-sm font-medium
                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
                      touch-manipulation bg-white min-h-[48px]"
@@ -233,7 +234,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         <div className="flex-1">
           <select 
             value={sortBy}
-            onChange={(e) => onSortChange(e.target.value as any)}
+            onChange={(e) => onSortChange(e.target.value as 'aisle' | 'status' | 'lastScanned')}
             className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm font-medium
                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
                      touch-manipulation bg-white min-h-[48px]"
@@ -310,7 +311,7 @@ const StatsOverview: React.FC<{ shelves: Shelf[] }> = ({ shelves }) => {
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      {stats.map((stat, _index) => {
+      {stats.map((stat) => {
         const Icon = stat.icon;
         return (
           <div 

@@ -55,7 +55,7 @@ export const useRealTimeUpdates = (
   const isConnectedRef = useRef(false);
   const connectionStatusRef = useRef<'connected' | 'polling' | 'disconnected'>('disconnected');
 
-  const log = useCallback((message: string, data?: any) => {
+  const log = useCallback((message: string, data?: unknown) => {
     if (debug) {
       console.log(`[RealTimeUpdates] ${message}`, data || '');
     }

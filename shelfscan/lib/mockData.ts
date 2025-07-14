@@ -491,7 +491,7 @@ export function simulateStaffAction(
   type: 'restock' | 'acknowledge' | 'rescan',
   targetId: string,
   shelves?: Shelf[]
-): { success: boolean; message: string; data?: any } {
+): { success: boolean; message: string; data?: unknown } {
   switch (type) {
     case 'restock':
       return {
@@ -654,7 +654,7 @@ export function validateMockShelves(shelves: Shelf[]): {
   }
   
   // Validate timestamps
-  shelves.forEach((shelf, _index) => {
+  shelves.forEach((shelf) => {
     try {
       new Date(shelf.lastScanned);
     } catch {
@@ -876,7 +876,7 @@ export function runComprehensiveValidation(): {
  */
 export function generateDemoReport(): {
   timestamp: string;
-  dataOverview: any;
+  dataOverview: Record<string, unknown>;
   demoReadiness: {
     score: number;
     recommendations: string[];

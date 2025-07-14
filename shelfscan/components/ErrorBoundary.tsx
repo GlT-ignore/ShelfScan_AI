@@ -172,6 +172,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   };
 
   render() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { hasError, error, errorInfo: _errorInfo, errorId, retryCount } = this.state;
     const { children, fallback, className } = this.props;
 
