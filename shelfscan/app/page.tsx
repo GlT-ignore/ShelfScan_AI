@@ -16,7 +16,7 @@ import { useShelves, useAlerts, useStaffActions } from '../lib/context/AppContex
 import { useRealTimeUpdates } from '../lib/hooks/useRealTimeUpdates';
 import ShelfDetailModal from '../components/ShelfDetailModal';
 import DemoController from '../components/DemoController';
-import { Shelf, Alert } from '../lib/types';
+import type { Shelf } from '../lib/types';
 import { useRouter } from 'next/navigation';
 
 // ============================================================================
@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
   const router = useRouter();
   
   // Initialize real-time updates hook
-  const { requestRescan, isConnected, connectionStatus } = useRealTimeUpdates({
+  const { requestRescan, connectionStatus } = useRealTimeUpdates({
     debug: process.env.NODE_ENV === 'development',
     pollingInterval: 6000,
     wsUpdateInterval: 10000,

@@ -5,7 +5,7 @@
  * Displays individual shelf status with color-coded indicators and action buttons
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Shelf } from '../lib/types';
 import { 
   AlertTriangle, 
