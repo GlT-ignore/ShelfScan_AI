@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Shelf, ScanUpdate } from '../types';
+import { ScanUpdate } from '../types';
 import { 
   generateRandomScanUpdate, 
   applyScanUpdate, 

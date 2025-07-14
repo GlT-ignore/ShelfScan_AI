@@ -33,7 +33,7 @@ import { useRouter } from 'next/navigation';
 const RealTimeStatus: React.FC<{ 
   connectionStatus: 'connected' | 'polling' | 'disconnected';
   isConnected: boolean;
-}> = ({ connectionStatus, isConnected }) => {
+}> = ({ connectionStatus, isConnected: _isConnected }) => {
   const [recentUpdate, setRecentUpdate] = useState(false);
 
   // Update timestamp periodically

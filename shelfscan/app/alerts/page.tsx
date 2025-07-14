@@ -8,23 +8,23 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { AppProvider, useAlerts, useStaffActions } from '../../lib/context/AppContext';
-import { Alert } from '../../lib/types';
-import { MobileNavigation, DesktopNavigation } from '../../components/MobileNavigation';
 import { 
   ArrowLeft,
   Filter, 
   Search,
+  AlertTriangle, 
+  Package, 
+  Clock, 
   CheckCircle,
-  AlertTriangle,
-  Clock,
+  Trash2, 
+  ExternalLink,
   MapPin,
-  Package,
-  RotateCcw,
-  ChevronDown,
-  X
+  RotateCcw
 } from 'lucide-react';
 import Link from 'next/link';
+import { AppProvider, useAlerts } from '../../lib/context/AppContext';
+import { Alert } from '../../lib/types';
+import { MobileNavigation, DesktopNavigation } from '../../components/MobileNavigation';
 
 // ============================================================================
 // FILTER CONTROLS COMPONENT

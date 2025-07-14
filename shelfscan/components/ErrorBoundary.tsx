@@ -172,7 +172,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   };
 
   render() {
-    const { hasError, error, errorInfo, errorId, retryCount } = this.state;
+    const { hasError, error, errorInfo: _errorInfo, errorId, retryCount } = this.state;
     const { children, fallback, className } = this.props;
 
     if (hasError) {
