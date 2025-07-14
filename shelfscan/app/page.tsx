@@ -155,13 +155,13 @@ const DashboardHeader: React.FC<{
               <div className="hidden lg:flex items-center gap-3 text-xs text-muted-foreground">
                 {emptyAlerts.length > 0 && (
                   <div className="flex items-center gap-1 animate-in slide-in-from-right duration-300">
-                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
                     <span>{emptyAlerts.length} Empty</span>
                   </div>
                 )}
                 {lowStockAlerts.length > 0 && (
                   <div className="flex items-center gap-1 animate-in slide-in-from-right duration-300">
-                    <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                    <span className="w-2 h-2 bg-chart-4 rounded-full animate-pulse"></span>
                     <span>{lowStockAlerts.length} Low</span>
                   </div>
                 )}
@@ -204,10 +204,10 @@ const FilterControls: React.FC<FilterControlsProps> = ({
     <div className="flex flex-col gap-4 mb-6">
       {/* TITLE SECTION */}
       <div className="flex items-center gap-2">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-foreground">
           Store Inventory
         </h2>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted-foreground">
           ({filteredCount} of {totalShelves} shelves)
         </span>
       </div>
@@ -216,13 +216,13 @@ const FilterControls: React.FC<FilterControlsProps> = ({
       <div className="flex flex-col sm:flex-row gap-3">
         {/* STATUS FILTER - Touch-optimized */}
         <div className="flex items-center gap-2 flex-1">
-          <Filter size={16} className="text-gray-400" />
+          <Filter size={16} className="text-muted-foreground" />
           <select 
             value={filter}
             onChange={(e) => onFilterChange(e.target.value as 'all' | 'ok' | 'low' | 'empty')}
-            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-sm font-medium
+            className="flex-1 border-2 border-border rounded-lg px-4 py-3 text-sm font-medium
                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                     touch-manipulation bg-white min-h-[48px]"
+                     touch-manipulation bg-card min-h-[48px]"
           >
             <option value="all">All Status</option>
             <option value="ok">✅ Good Stock</option>
@@ -236,9 +236,9 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           <select 
             value={sortBy}
             onChange={(e) => onSortChange(e.target.value as 'aisle' | 'status' | 'lastScanned')}
-            className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm font-medium
+            className="w-full border-2 border-border rounded-lg px-4 py-3 text-sm font-medium
                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                     touch-manipulation bg-white min-h-[48px]"
+                     touch-manipulation bg-card min-h-[48px]"
           >
             <option value="aisle">Sort by Aisle</option>
             <option value="status">Sort by Status</option>
@@ -251,10 +251,10 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           <button
             onClick={() => onFilterChange('all')}
             className="flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] text-sm font-medium
-                     text-gray-600 hover:text-gray-800 border-2 border-gray-300 rounded-lg 
-                     hover:bg-gray-50 active:bg-gray-100 active:scale-[0.98] 
+                     text-muted-foreground hover:text-foreground border-2 border-border rounded-lg 
+                     hover:bg-muted active:bg-muted active:scale-[0.98] 
                      transition-all duration-200 touch-manipulation
-                     focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                     focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2"
           >
             <RotateCcw size={16} />
             <span>Clear</span>
@@ -279,33 +279,33 @@ const StatsOverview: React.FC<{ shelves: Shelf[] }> = ({ shelves }) => {
       value: okShelves,
       label: 'Good Stock',
       icon: CheckCircle,
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
-      iconColor: 'text-green-600',
-      textColor: 'text-green-800',
-      labelColor: 'text-green-600',
+      bgColor: 'bg-card',
+      borderColor: 'border-border',
+      iconColor: 'text-chart-1',
+      textColor: 'text-chart-1',
+      labelColor: 'text-chart-1',
       delay: 0
     },
     {
       value: lowShelves,
       label: 'Low Stock',
       icon: AlertTriangle,
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-200',
-      iconColor: 'text-yellow-600',
-      textColor: 'text-yellow-800',
-      labelColor: 'text-yellow-600',
+      bgColor: 'bg-card',
+      borderColor: 'border-border',
+      iconColor: 'text-chart-4',
+      textColor: 'text-chart-4',
+      labelColor: 'text-chart-4',
       delay: 100
     },
     {
       value: emptyShelves,
       label: 'Empty/Critical',
       icon: AlertTriangle,
-      bgColor: 'bg-red-50',
-      borderColor: 'border-red-200',
-      iconColor: 'text-red-600',
-      textColor: 'text-red-800',
-      labelColor: 'text-red-600',
+      bgColor: 'bg-card',
+      borderColor: 'border-border',
+      iconColor: 'text-destructive',
+      textColor: 'text-destructive',
+      labelColor: 'text-destructive',
       delay: 200
     }
   ];
@@ -448,7 +448,7 @@ const Dashboard: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50 transition-all duration-300">
+    <div className="min-h-screen bg-background transition-all duration-300">
       <DashboardHeader 
         connectionStatus={connectionStatus}
         isConnected={isConnected}
@@ -479,7 +479,7 @@ const Dashboard: React.FC = () => {
         {/* ENHANCED LOADING STATE */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-16 animate-fadeIn">
-            <div className="flex items-center gap-3 text-gray-600 mb-4">
+            <div className="flex items-center gap-3 text-muted-foreground mb-4">
               <RotateCcw size={24} className="animate-spin text-blue-600" />
               <span className="text-lg font-medium">Loading shelf data...</span>
             </div>
@@ -489,24 +489,24 @@ const Dashboard: React.FC = () => {
               {[...Array(8)].map((_, index) => (
                 <div
                   key={index}
-                  className="animate-fadeInUp animate-shimmer rounded-lg border-2 border-gray-200 p-6 h-48"
+                  className="animate-fadeInUp animate-shimmer rounded-lg border-2 border-border p-6 h-48"
                   style={{
                     animationDelay: `${index * 100}ms`
                   }}
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="h-6 bg-gray-300 rounded w-24 loading-skeleton"></div>
-                      <div className="h-4 bg-gray-300 rounded w-16 loading-skeleton"></div>
+                      <div className="h-6 bg-muted rounded w-24 loading-skeleton"></div>
+                      <div className="h-4 bg-muted rounded w-16 loading-skeleton"></div>
                     </div>
-                    <div className="h-4 bg-gray-300 rounded w-32 loading-skeleton"></div>
+                    <div className="h-4 bg-muted rounded w-32 loading-skeleton"></div>
                     <div className="space-y-2">
-                      <div className="h-3 bg-gray-300 rounded w-full loading-skeleton"></div>
-                      <div className="h-3 bg-gray-300 rounded w-3/4 loading-skeleton"></div>
+                      <div className="h-3 bg-muted rounded w-full loading-skeleton"></div>
+                      <div className="h-3 bg-muted rounded w-3/4 loading-skeleton"></div>
                     </div>
                     <div className="flex gap-2 mt-4">
-                      <div className="h-10 bg-gray-300 rounded flex-1 loading-skeleton"></div>
-                      <div className="h-10 bg-gray-300 rounded flex-1 loading-skeleton"></div>
+                      <div className="h-10 bg-muted rounded flex-1 loading-skeleton"></div>
+                      <div className="h-10 bg-muted rounded flex-1 loading-skeleton"></div>
                     </div>
                   </div>
                 </div>
@@ -520,7 +520,7 @@ const Dashboard: React.FC = () => {
           <>
             {filteredShelves.length === 0 ? (
               <div className="text-center py-12 transition-all duration-300">
-                <div className="text-gray-500">
+                <div className="text-muted-foreground">
                   No shelves found matching the current filter.
                 </div>
                 <button 

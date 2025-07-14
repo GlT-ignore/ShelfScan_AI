@@ -162,11 +162,12 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
               aria-hidden="true"
             />
           </div>
-          <div className="flex items-center gap-1 text-sm text-gray-600">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin size={14} aria-hidden="true" />
             <span>{shelf.aisle}</span>
           </div>
         </div>
+        
         {/* STATUS BADGE */}
         <div className="flex items-center gap-2 mb-3">
           <span 
@@ -177,21 +178,23 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
           >
             {statusConfig.label}
           </span>
-          <div className="flex items-center gap-1 text-xs text-gray-500">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Clock size={12} aria-hidden="true" />
             <span>{showCounts ? formatTimeAgo(shelf.lastScanned) : ''}</span>
           </div>
         </div>
       </div>
+      
       {/* METRICS SECTION */}
       <div className="px-4 pb-4">
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-1 text-sm">
-            <Package size={14} className="text-gray-500" aria-hidden="true" />
-            <span className="text-gray-700">
+            <Package size={14} className="text-muted-foreground" aria-hidden="true" />
+            <span className="text-foreground">
               {showCounts ? metrics.totalItems : ''} product{showCounts && metrics.totalItems !== 1 ? 's' : ''}
             </span>
           </div>
+          
           {/* ISSUE INDICATORS */}
           {showCounts && metrics.emptyCount > 0 && (
             <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
@@ -206,11 +209,12 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
             </span>
           )}
         </div>
+        
         {/* CRITICAL PRODUCT INFO */}
         {showCounts && criticalProduct && (
-          <div className="mb-4 p-2 bg-white/50 rounded border border-gray-200">
-            <div className="text-xs text-gray-600 mb-1">Most Critical:</div>
-            <div className="text-sm font-medium text-gray-800">
+          <div className="mb-4 p-2 bg-card/50 rounded border border-border">
+            <div className="text-xs text-muted-foreground mb-1">Most Critical:</div>
+            <div className="text-sm font-medium text-foreground">
               {criticalProduct.product}
               <span className={`ml-2 text-xs ${
                 criticalProduct.count === 0 ? 'text-red-600' : 'text-yellow-600'
@@ -221,6 +225,7 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
           </div>
         )}
       </div>
+      
       {/* TOUCH-OPTIMIZED ACTION BUTTONS SECTION */}
       <div className="px-4 pb-4">
         <div className="flex flex-row gap-3 mb-3">
@@ -256,7 +261,7 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
             e.stopPropagation();
             onViewDetails?.(shelf.id);
           }}
-          className="w-full min-w-0 whitespace-nowrap text-xs sm:text-sm md:text-base font-medium px-2 sm:px-4 py-3 min-h-[48px] bg-white text-gray-700 rounded-lg border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 active:scale-[0.98] transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center justify-center gap-2"
+          className="w-full min-w-0 whitespace-nowrap text-xs sm:text-sm md:text-base font-medium px-2 sm:px-4 py-3 min-h-[48px] bg-card text-foreground rounded-lg border-2 border-border hover:bg-muted hover:border-border active:bg-muted active:scale-[0.98] transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 inline-flex items-center justify-center gap-2"
           aria-label={`View details for shelf ${shelf.id}`}
         >
           <Package size={16} aria-hidden="true" />
