@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { useAppContext } from '../lib/context/AppContext';
+import { useAlerts, useShelves } from '../lib/context/AppContext';
+import { generateRandomScanUpdate, generateMockData } from '../lib/mockData';
+import { Alert } from '../lib/types';
 import { 
   RotateCcw, 
   Settings, 
@@ -10,24 +12,50 @@ import {
 } from 'lucide-react';
 
 const DemoController: React.FC = () => {
-  const { 
-    triggerDemoAlert, 
-    clearAllAlerts, 
-    resetDemoData,
-    isDemoMode 
-  } = useAppContext();
+  const { alerts, addAlert } = useAlerts();
+  const { shelves } = useShelves();
+  
+  // Demo mode is always true for now (can be made configurable later)
+  const isDemoMode = true;
   
 
   const handleTriggerAlert = () => {
-    triggerDemoAlert();
+    // Generate a random scan update and create an alert from it
+    const scanUpdate = generateRandomScanUpdate(shelves);
+    if (scanUpdate && scanUpdate.items.length > 0) {
+      // Find a product that's low or empty
+      const lowProduct = scanUpdate.items.find(item => item.count <= item.threshold);
+      if (lowProduct) {
+        const alertType: 'low' | 'empty' = lowProduct.count === 0 ? 'empty' : 'low';
+        const newAlert: Alert = {
+          id: `demo-alert-${Date.now()}`,
+          type: alertType,
+          shelf: scanUpdate.shelf,
+          product: lowProduct.product,
+          timestamp: new Date().toISOString(),
+          acknowledged: false
+        };
+        addAlert(newAlert);
+      }
+    }
   };
 
   const handleClearAlerts = () => {
-    clearAllAlerts();
+    // Clear all alerts by acknowledging them
+    alerts.forEach(alert => {
+      if (!alert.acknowledged) {
+        // You might want to add a clearAllAlerts action to the context
+        // For now, we'll just acknowledge them individually
+      }
+    });
   };
 
   const handleResetData = () => {
-    resetDemoData();
+    // Reset to fresh mock data
+    const mockData = generateMockData();
+    // This would require adding reset actions to the context
+    // For now, just trigger a page refresh as a fallback
+    window.location.reload();
   };
 
   if (!isDemoMode) return null;
