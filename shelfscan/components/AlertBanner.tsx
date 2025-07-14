@@ -17,8 +17,7 @@ import {
   Bell, 
   CheckCircle, 
   AlertTriangle, 
-  ExternalLink,
-  X 
+  ExternalLink 
 } from 'lucide-react';
 
 interface AlertBannerProps {

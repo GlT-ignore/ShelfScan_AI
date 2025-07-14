@@ -20,10 +20,9 @@ import {
   Clock,
   MapPin,
   Package,
-  Eye,
-  EyeOff,
   RotateCcw,
-  Calendar
+  ChevronDown,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -265,7 +264,6 @@ const AlertRow: React.FC<AlertRowProps> = ({ alert, onAcknowledge, onViewShelf }
 
 const AlertsPageContent: React.FC = () => {
   const { alerts, acknowledgeAlert } = useAlerts();
-  const { markRestocked } = useStaffActions();
   
   // Filter state
   const [filters, setFilters] = useState({

@@ -11,17 +11,14 @@
  * - Restocking operations
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../lib/context/AppContext';
 import { Shelf, Alert } from '../lib/types';
 import { 
-  Play, 
   Square, 
   RotateCcw, 
-  Settings,
   AlertTriangle,
   Package,
-  CheckCircle,
   Clock,
   Zap,
   Eye,
@@ -560,7 +557,7 @@ const useDemoController = () => {
       // Attempt emergency reset
       try {
         resetDemo();
-      } catch (resetError) {
+      } catch (_resetError) {
         setError('Critical failure: Unable to reset demo state. Please refresh the page.');
       }
     }

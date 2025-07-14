@@ -6,26 +6,23 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { AppProvider, useShelves, useAlerts, useStaffActions } from '../lib/context/AppContext';
-import { useRealTimeUpdates } from '../lib/hooks/useRealTimeUpdates';
-import ShelfCard from '../components/ShelfCard';
-import AlertBanner from '../components/AlertBanner';
-import NotificationBadge from '../components/NotificationBadge';
-import ShelfDetailModal from '../components/ShelfDetailModal';
-import DemoController from '../components/DemoController';
-import ErrorBoundary from '../components/ErrorBoundary';
-import { MobileNavigation, DesktopNavigation } from '../components/MobileNavigation';
 import { 
-  Bell, 
   Filter, 
   RotateCcw, 
   Wifi, 
   WifiOff,
   AlertTriangle,
   CheckCircle,
-  Clock,
   Activity
 } from 'lucide-react';
+import { useShelves, useAlerts, useStaffActions } from '../lib/context/AppContext';
+import { useRealTimeUpdates } from '../lib/hooks/useRealTimeUpdates';
+import ShelfCard from '../components/ShelfCard';
+import AlertBanner from '../components/AlertBanner';
+import ShelfDetailModal from '../components/ShelfDetailModal';
+import DemoController from '../components/DemoController';
+import ErrorBoundary from '../components/ErrorBoundary';
+import { MobileNavigation, DesktopNavigation } from '../components/MobileNavigation';
 import { Shelf } from '../lib/types';
 import { useRouter } from 'next/navigation';
 
@@ -37,24 +34,16 @@ const RealTimeStatus: React.FC<{
   connectionStatus: 'connected' | 'polling' | 'disconnected';
   isConnected: boolean;
 }> = ({ connectionStatus, isConnected }) => {
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [recentUpdate, setRecentUpdate] = useState(false);
 
   // Update timestamp periodically
   useEffect(() => {
     const interval = setInterval(() => {
-      setLastUpdate(new Date());
+      setRecentUpdate(true);
+      setTimeout(() => setRecentUpdate(false), 1000);
     }, 30000); // Update every 30 seconds
     return () => clearInterval(interval);
   }, []);
-
-  // Show pulse effect for recent updates
-  useEffect(() => {
-    if (recentUpdate) {
-      const timer = setTimeout(() => setRecentUpdate(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [recentUpdate]);
 
   const getStatusConfig = () => {
     switch (connectionStatus) {
@@ -321,7 +310,7 @@ const StatsOverview: React.FC<{ shelves: Shelf[] }> = ({ shelves }) => {
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      {stats.map((stat, index) => {
+      {stats.map((stat, _index) => {
         const Icon = stat.icon;
         return (
           <div 
@@ -596,13 +585,9 @@ const Dashboard: React.FC = () => {
 };
 
 // ============================================================================
-// PAGE WRAPPER WITH PROVIDER
+// PAGE WRAPPER
 // ============================================================================
 
 export default function DashboardPage() {
-  return (
-    <AppProvider>
-      <Dashboard />
-    </AppProvider>
-  );
+  return <Dashboard />;
 }
