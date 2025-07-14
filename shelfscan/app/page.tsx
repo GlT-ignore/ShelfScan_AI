@@ -425,9 +425,6 @@ const Dashboard: React.FC = () => {
 
       {/* DEMO CONTROLLER */}
       <DemoController />
-
-      {/* ERROR BOUNDARY */}
-      <ErrorBoundary />
     </div>
   );
 };
@@ -439,7 +436,9 @@ const Dashboard: React.FC = () => {
 export default function DashboardPage() {
   return (
     <AppProvider>
-      <Dashboard />
+      <ErrorBoundary>
+        <Dashboard />
+      </ErrorBoundary>
     </AppProvider>
   );
 }
