@@ -14,8 +14,6 @@
 import React, { useState, useEffect } from 'react';
 import { Alert } from '../lib/types';
 import { 
-  Bell, 
-  CheckCircle, 
   AlertTriangle, 
   ExternalLink 
 } from 'lucide-react';

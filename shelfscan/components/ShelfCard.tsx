@@ -5,15 +5,13 @@
  * Displays individual shelf status with color-coded indicators and action buttons
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Shelf } from '../lib/types';
 import { 
   AlertTriangle, 
   CheckCircle, 
-  RefreshCw, 
-  Clock,
-  Package,
-  MapPin
+  RefreshCw,
+  Package
 } from 'lucide-react';
 
 // ============================================================================
@@ -121,8 +119,7 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
   onRequestRescan,
   className = ''
 }) => {
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => { setIsMounted(true); }, []);
+
   
   const statusConfig = getStatusConfig(shelf.status);
   const metrics = calculateMetrics(shelf);

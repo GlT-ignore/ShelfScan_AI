@@ -5,7 +5,7 @@
  * Uses exact design from magicpath-project with integrated real-time functionality
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   AlertTriangle, 
   CheckCircle, 
