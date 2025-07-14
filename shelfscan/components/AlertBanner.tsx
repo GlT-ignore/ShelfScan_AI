@@ -87,32 +87,20 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
   return (
     <div 
       className={`
-        bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg p-4 mb-6 
-        shadow-lg animate-slideInDown transition-all duration-300 hover:shadow-xl
+        bg-amber-950/30 border border-amber-700/40 rounded-xl p-6 backdrop-blur-sm transition-all duration-200
         ${className}
       `}
       role="alert"
       aria-live="polite"
       aria-label={showCounts ? `${alertCount} active alerts` : undefined}
     >
-      {/* ANIMATED HEADER */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <div className="relative">
-              <Bell 
-                size={18} 
-                className="text-amber-600 animate-bounce" 
-                aria-hidden="true"
-              />
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-            </div>
-            <h2 className="font-semibold text-amber-800 animate-fadeInLeft">
-              Active Alerts
-            </h2>
-          </div>
+          <AlertTriangle className="w-5 h-5 text-amber-400" />
+          <h2 className="text-lg font-semibold text-foreground">Active Alerts</h2>
           {showCounts && (
-            <span className="bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full text-xs font-medium">
+            <span className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs font-medium border border-amber-500/30">
               {alertCount}
             </span>
           )}
@@ -121,91 +109,58 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
         {onViewAll && (
           <button
             onClick={onViewAll}
-            className="flex items-center gap-1 text-sm text-amber-700 hover:text-amber-900 hover:underline transition-colors"
-            aria-label="View all alerts"
+            className="text-primary hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition-colors"
           >
-            <span>View All</span>
-            <ExternalLink size={14} aria-hidden="true" />
+            View All
+            <ExternalLink className="w-4 h-4" />
           </button>
         )}
       </div>
       
-      {/* ALERT LIST */}
-      <div className="space-y-2">
+      {/* Alert List */}
+      <div className="space-y-3">
         {displayedAlerts.map((alert, index) => (
           <div 
             key={alert.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between bg-card p-3 rounded-md border border-amber-100 shadow-sm"
+            className="flex items-center justify-between p-4 bg-card/50 rounded-lg border border-border/50 backdrop-blur-sm"
           >
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                {/* STATUS BADGE */}
-                <span 
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                    alert.type === 'empty' 
-                      ? 'bg-red-100 text-red-800 border border-red-200' 
-                      : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                  }`}
-                >
-                  <AlertTriangle 
-                    size={12} 
-                    aria-hidden="true"
-                  />
-                  {alert.type === 'empty' ? 'EMPTY' : 'LOW STOCK'}
-                </span>
-                
-                {/* PRIORITY INDICATOR */}
-                {index === 0 && sortedAlerts.length > 1 && (
-                  <span className="bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold">
-                    URGENT
-                  </span>
-                )}
-              </div>
-              
-              {/* ALERT DETAILS */}
-              <div className="text-gray-900 font-medium truncate">
-                {alert.product}
-              </div>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <span>Shelf {alert.shelf}</span>
-                <span className="text-gray-400">•</span>
-                <span>{formatTimeAgo(alert.timestamp)}</span>
+            <div className="flex items-center gap-3">
+              <span 
+                className={`px-2 py-1 rounded text-xs font-medium ${
+                  alert.type === 'empty' 
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                }`}
+              >
+                {alert.type === 'empty' ? 'EMPTY' : 'LOW STOCK'}
+              </span>
+              <div>
+                <p className="font-medium text-foreground">{alert.product}</p>
+                <p className="text-sm text-muted-foreground">
+                  Shelf {alert.shelf} • {formatTimeAgo(alert.timestamp)}
+                </p>
               </div>
             </div>
             
-            {/* ACKNOWLEDGE BUTTON */}
-            <div className="flex items-center mt-2 sm:mt-0 sm:ml-4">
-              <button
-                onClick={() => onAcknowledge(alert.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-md border border-green-200 hover:bg-green-100 hover:border-green-300 transition-colors text-sm font-medium"
-                aria-label={`Acknowledge alert for ${alert.product}`}
-              >
-                <CheckCircle size={14} aria-hidden="true" />
-                <span className="hidden sm:inline">Acknowledge</span>
-                <span className="sm:hidden">ACK</span>
-              </button>
-            </div>
+            <button
+              onClick={() => onAcknowledge(alert.id)}
+              className="px-3 py-1 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-lg shadow-emerald-500/25"
+            >
+              Acknowledge
+            </button>
           </div>
         ))}
       </div>
       
-      {/* REMAINING ALERTS INDICATOR */}
+      {/* More Alerts Indicator */}
       {showCounts && remainingCount > 0 && (
-        <div className="text-center mt-3 pt-2 border-t border-amber-200">
-          <div className="text-sm text-amber-700">
-            <span className="font-medium">+{remainingCount} more alert{remainingCount !== 1 ? 's' : ''}</span>
-            {onViewAll && (
-              <>
-                <span className="mx-2">•</span>
-                <button
-                  onClick={onViewAll}
-                  className="hover:underline font-medium"
-                >
-                  View All Alerts
-                </button>
-              </>
-            )}
-          </div>
+        <div className="mt-4 text-center">
+          <button
+            onClick={onViewAll}
+            className="text-primary hover:text-blue-300 text-sm font-medium transition-colors"
+          >
+            +{remainingCount} more alerts • View All Alerts
+          </button>
         </div>
       )}
     </div>

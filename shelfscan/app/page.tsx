@@ -2,352 +2,83 @@
 
 /**
  * ShelfScan AI Dashboard - Main Page
- * Displays real-time inventory status across all store shelves
+ * Uses exact design from magicpath-project with integrated real-time functionality
  */
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Filter, 
-  RotateCcw, 
-  Wifi, 
-  WifiOff,
-  AlertTriangle,
-  CheckCircle,
-  Activity,
-  Eye
+  AlertTriangle, 
+  CheckCircle, 
+  Eye, 
+  RotateCcw 
 } from 'lucide-react';
 import { useShelves, useAlerts, useStaffActions } from '../lib/context/AppContext';
 import { useRealTimeUpdates } from '../lib/hooks/useRealTimeUpdates';
-import ShelfCard from '../components/ShelfCard';
-import AlertBanner from '../components/AlertBanner';
 import ShelfDetailModal from '../components/ShelfDetailModal';
 import DemoController from '../components/DemoController';
-import ErrorBoundary from '../components/ErrorBoundary';
-import { MobileNavigation, DesktopNavigation } from '../components/MobileNavigation';
-import { Shelf } from '../lib/types';
+import { Shelf, Alert } from '../lib/types';
 import { useRouter } from 'next/navigation';
 
 // ============================================================================
-// REAL-TIME STATUS INDICATOR COMPONENT
+// HELPER FUNCTIONS FROM MAGICPATH
 // ============================================================================
 
-const RealTimeStatus: React.FC<{ 
-  connectionStatus: 'connected' | 'polling' | 'disconnected';
-  isConnected: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-}> = ({ connectionStatus, isConnected }) => {
-  const [recentUpdate, setRecentUpdate] = useState(false);
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'empty':
+      return 'bg-red-950/50 border-red-800/50 dark:bg-red-950/30 dark:border-red-700/40';
+    case 'low':
+      return 'bg-amber-950/50 border-amber-800/50 dark:bg-amber-950/30 dark:border-amber-700/40';
+    case 'ok':
+      return 'bg-emerald-950/50 border-emerald-800/50 dark:bg-emerald-950/30 dark:border-emerald-700/40';
+    default:
+      return 'bg-slate-950/50 border-slate-800/50 dark:bg-slate-950/30 dark:border-slate-700/40';
+  }
+};
 
-  // Update timestamp periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRecentUpdate(true);
-      setTimeout(() => setRecentUpdate(false), 1000);
-    }, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'empty':
+      return <AlertTriangle className="w-4 h-4 text-red-400" />;
+    case 'low':
+      return <AlertTriangle className="w-4 h-4 text-amber-400" />;
+    case 'ok':
+      return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+    default:
+      return null;
+  }
+};
 
-  const getStatusConfig = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return {
-          icon: <Wifi size={16} className="text-green-600" />,
-          text: 'Live',
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          description: 'Real-time updates active'
-        };
-      case 'polling':
-        return {
-          icon: <Activity size={16} className="text-amber-600" />,
-          text: 'Polling',
-          color: 'text-amber-600',
-          bgColor: 'bg-amber-50',
-          description: 'Polling for updates'
-        };
-      case 'disconnected':
-        return {
-          icon: <WifiOff size={16} className="text-red-600" />,
-          text: 'Offline',
-          color: 'text-red-600',
-          bgColor: 'bg-red-50',
-          description: 'Connection lost'
-        };
-    }
-  };
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'empty':
+      return 'Empty/Critical';
+    case 'low':
+      return 'Low Stock';
+    case 'ok':
+      return 'Good Stock';
+    default:
+      return 'Unknown';
+  }
+};
 
-  const config = getStatusConfig();
-
-  return (
-    <div 
-      className={`flex items-center gap-1 px-2 py-1 rounded-full ${config.bgColor} ${recentUpdate ? 'animate-pulse' : ''}`}
-      title={config.description}
-    >
-      <div className={`${recentUpdate ? 'animate-ping' : ''}`}>
-        {config.icon}
-      </div>
-      <span className={`text-xs font-medium ${config.color}`}>
-        {config.text}
-      </span>
-    </div>
-  );
+const formatTimeAgo = (timestamp: string): string => {
+  const now = new Date().getTime();
+  const time = new Date(timestamp).getTime();
+  const diffMinutes = Math.floor((now - time) / (1000 * 60));
+  
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
 };
 
 // ============================================================================
-// DASHBOARD HEADER COMPONENT
-// ============================================================================
-
-const DashboardHeader: React.FC<{ 
-  connectionStatus: 'connected' | 'polling' | 'disconnected';
-  isConnected: boolean;
-}> = ({ connectionStatus, isConnected }) => {
-  const [isMounted, setIsMounted] = useState(false);
-  const { alerts } = useAlerts();
-  
-  // Track mount state to prevent hydration mismatch
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-  
-  // Only calculate alerts after mount to prevent hydration mismatch
-  const urgentAlerts = isMounted ? alerts.filter(alert => !alert.acknowledged) : [];
-  const emptyAlerts = isMounted ? urgentAlerts.filter(alert => alert.type === 'empty') : [];
-  const lowStockAlerts = isMounted ? urgentAlerts.filter(alert => alert.type === 'low') : [];
-  
-  return (
-    <header className="bg-card border-b border-border shadow-sm transition-all duration-300 sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* LEFT SIDE - LOGO & STATUS */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {/* MOBILE NAVIGATION */}
-            <MobileNavigation />
-            
-            {/* APP TITLE */}
-            <div className="flex items-center gap-2 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
-                ShelfScan AI
-              </h1>
-              <div className="hidden sm:block">
-                <RealTimeStatus 
-                  connectionStatus={connectionStatus}
-                  isConnected={isConnected}
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* RIGHT SIDE - NAVIGATION & STATUS */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* MOBILE REAL-TIME STATUS */}
-            <div className="block sm:hidden">
-              <RealTimeStatus 
-                connectionStatus={connectionStatus}
-                isConnected={isConnected}
-              />
-            </div>
-            
-            {/* DESKTOP NAVIGATION */}
-            <DesktopNavigation />
-            
-            {/* QUICK STATS FOR LARGE SCREENS - Only show after mount */}
-            {isMounted && (
-              <div className="hidden lg:flex items-center gap-3 text-xs text-muted-foreground">
-                {emptyAlerts.length > 0 && (
-                  <div className="flex items-center gap-1 animate-in slide-in-from-right duration-300">
-                    <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
-                    <span>{emptyAlerts.length} Empty</span>
-                  </div>
-                )}
-                {lowStockAlerts.length > 0 && (
-                  <div className="flex items-center gap-1 animate-in slide-in-from-right duration-300">
-                    <span className="w-2 h-2 bg-chart-4 rounded-full animate-pulse"></span>
-                    <span>{lowStockAlerts.length} Low</span>
-                  </div>
-                )}
-                <div className="transition-all duration-300">
-                  Last update: {new Date().toLocaleTimeString()}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
-
-
-
-// ============================================================================
-// FILTER CONTROLS COMPONENT
-// ============================================================================
-
-interface FilterControlsProps {
-  filter: 'all' | 'ok' | 'low' | 'empty';
-  onFilterChange: (filter: 'all' | 'ok' | 'low' | 'empty') => void;
-  sortBy: 'aisle' | 'status' | 'lastScanned';
-  onSortChange: (sort: 'aisle' | 'status' | 'lastScanned') => void;
-  totalShelves: number;
-  filteredCount: number;
-}
-
-const FilterControls: React.FC<FilterControlsProps> = ({
-  filter,
-  onFilterChange,
-  sortBy,
-  onSortChange,
-  totalShelves,
-  filteredCount
-}) => {
-  return (
-    <div className="flex flex-col gap-4 mb-6">
-      {/* TITLE SECTION */}
-      <div className="flex items-center gap-2">
-        <h2 className="text-xl font-semibold text-foreground">
-          Store Inventory
-        </h2>
-        <span className="text-sm text-muted-foreground">
-          ({filteredCount} of {totalShelves} shelves)
-        </span>
-      </div>
-      
-      {/* TOUCH-OPTIMIZED CONTROLS */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* STATUS FILTER - Touch-optimized */}
-        <div className="flex items-center gap-2 flex-1">
-          <Filter size={16} className="text-muted-foreground" />
-          <select 
-            value={filter}
-            onChange={(e) => onFilterChange(e.target.value as 'all' | 'ok' | 'low' | 'empty')}
-            className="flex-1 border-2 border-border rounded-lg px-4 py-3 text-sm font-medium
-                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                     touch-manipulation bg-card min-h-[48px]"
-          >
-            <option value="all">All Status</option>
-            <option value="ok">✅ Good Stock</option>
-            <option value="low">⚠️ Low Stock</option>
-            <option value="empty">🚨 Empty</option>
-          </select>
-        </div>
-        
-        {/* SORT BY - Touch-optimized */}
-        <div className="flex-1">
-          <select 
-            value={sortBy}
-            onChange={(e) => onSortChange(e.target.value as 'aisle' | 'status' | 'lastScanned')}
-            className="w-full border-2 border-border rounded-lg px-4 py-3 text-sm font-medium
-                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                     touch-manipulation bg-card min-h-[48px]"
-          >
-            <option value="aisle">Sort by Aisle</option>
-            <option value="status">Sort by Status</option>
-            <option value="lastScanned">Sort by Last Scan</option>
-          </select>
-        </div>
-        
-        {/* CLEAR FILTERS - Touch-optimized */}
-        {filter !== 'all' && (
-          <button
-            onClick={() => onFilterChange('all')}
-            className="flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] text-sm font-medium
-                     text-muted-foreground hover:text-foreground border-2 border-border rounded-lg 
-                     hover:bg-muted active:bg-muted active:scale-[0.98] 
-                     transition-all duration-200 touch-manipulation
-                     focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2"
-          >
-            <RotateCcw size={16} />
-            <span>Clear</span>
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ============================================================================
-// STATS OVERVIEW COMPONENT
-// ============================================================================
-
-const StatsOverview: React.FC<{ shelves: Shelf[] }> = ({ shelves }) => {
-  const okShelves = shelves.filter(s => s.status === 'ok').length;
-  const lowShelves = shelves.filter(s => s.status === 'low').length;
-  const emptyShelves = shelves.filter(s => s.status === 'empty').length;
-  
-  const stats = [
-    {
-      value: okShelves,
-      label: 'Good Stock',
-      icon: CheckCircle,
-      bgColor: 'bg-card',
-      borderColor: 'border-border',
-      iconColor: 'text-chart-1',
-      textColor: 'text-chart-1',
-      labelColor: 'text-chart-1',
-      delay: 0
-    },
-    {
-      value: lowShelves,
-      label: 'Low Stock',
-      icon: AlertTriangle,
-      bgColor: 'bg-card',
-      borderColor: 'border-border',
-      iconColor: 'text-chart-4',
-      textColor: 'text-chart-4',
-      labelColor: 'text-chart-4',
-      delay: 100
-    },
-    {
-      value: emptyShelves,
-      label: 'Empty/Critical',
-      icon: AlertTriangle,
-      bgColor: 'bg-card',
-      borderColor: 'border-border',
-      iconColor: 'text-destructive',
-      textColor: 'text-destructive',
-      labelColor: 'text-destructive',
-      delay: 200
-    }
-  ];
-  
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <div 
-            key={stat.label}
-            className={`
-              ${stat.bgColor} ${stat.borderColor} rounded-lg p-4 border-2
-              animate-fadeInUp hover-lift transition-all duration-300 cursor-pointer
-              hover:scale-105 active:scale-95 group
-            `}
-            style={{
-              animationDelay: `${stat.delay}ms`
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-full ${stat.bgColor} ${stat.borderColor} border group-hover:animate-float`}>
-                <Icon size={24} className={`${stat.iconColor} transition-transform duration-300 group-hover:scale-110`} />
-              </div>
-              <div>
-                <div className={`text-3xl font-bold ${stat.textColor} transition-all duration-300 group-hover:scale-110`}>
-                  {stat.value}
-                </div>
-                <div className={`text-sm font-medium ${stat.labelColor}`}>
-                  {stat.label}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-// ============================================================================
-// UPDATED DASHBOARD COMPONENT WITH REAL-TIME UPDATES
+// MAIN DASHBOARD COMPONENT WITH MAGICPATH DESIGN
 // ============================================================================
 
 const Dashboard: React.FC = () => {
@@ -366,58 +97,18 @@ const Dashboard: React.FC = () => {
   });
   
   // Local state for UI
-  const [filter, setFilter] = useState<'all' | 'ok' | 'low' | 'empty'>('all');
-  const [sortBy, setSortBy] = useState<'aisle' | 'status' | 'lastScanned'>('aisle');
   const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [updatedShelves, setUpdatedShelves] = useState<Set<string>>(new Set());
   const [showDemo, setShowDemo] = useState(false);
   
-  // Track recently updated shelves for visual feedback
-  useEffect(() => {
-    const shelfIds = new Set(shelves.map(s => s.id));
-    const newlyUpdated = new Set<string>();
-    
-    // Check for changes (this is a simplified approach)
-    shelfIds.forEach(id => {
-      const shelf = shelves.find(s => s.id === id);
-      if (shelf) {
-        const lastScannedTime = new Date(shelf.lastScanned).getTime();
-        const fiveSecondsAgo = Date.now() - 5000;
-        
-        if (lastScannedTime > fiveSecondsAgo) {
-          newlyUpdated.add(id);
-        }
-      }
-    });
-    
-    setUpdatedShelves(newlyUpdated);
-    
-    // Clear the updated status after 3 seconds
-    if (newlyUpdated.size > 0) {
-      const timer = setTimeout(() => {
-        setUpdatedShelves(new Set());
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [shelves]);
+  // Get active alerts (unacknowledged)
+  const activeAlerts = alerts.filter(alert => !alert.acknowledged).slice(0, 3);
+  const remainingAlerts = alerts.filter(alert => !alert.acknowledged).length - 3;
   
-  // Filter and sort shelves
-  const filteredShelves = shelves
-    .filter(shelf => filter === 'all' || shelf.status === filter)
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'aisle':
-          return a.aisle.localeCompare(b.aisle) || a.id.localeCompare(b.id);
-        case 'status':
-          const statusOrder = { empty: 0, low: 1, ok: 2 };
-          return statusOrder[a.status] - statusOrder[b.status];
-        case 'lastScanned':
-          return new Date(b.lastScanned).getTime() - new Date(a.lastScanned).getTime();
-        default:
-          return 0;
-      }
-    });
+  // Calculate stats
+  const okCount = shelves.filter(s => s.status === 'ok').length;
+  const lowCount = shelves.filter(s => s.status === 'low').length;
+  const emptyCount = shelves.filter(s => s.status === 'empty').length;
   
   // Event handlers
   const handleViewDetails = (shelfId: string) => {
@@ -437,133 +128,273 @@ const Dashboard: React.FC = () => {
     markRestocked(shelfId, productName);
   };
   
-  // Use the real-time updates hook for rescanning
   const handleRequestRescan = async (shelfId: string) => {
     try {
       await requestRescan(shelfId);
-      // Visual feedback will be handled by the shelf update detection
     } catch (error) {
       console.error('Failed to rescan shelf:', error);
     }
   };
-  
-  return (
-    <div className="min-h-screen bg-background transition-all duration-300">
-      <DashboardHeader 
-        connectionStatus={connectionStatus}
-        isConnected={isConnected}
-      />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
-        <div className="w-full transition-all duration-300">
-          <AlertBanner 
-            alerts={alerts}
-            onAcknowledge={acknowledgeAlert}
-            onViewAll={() => router.push('/alerts')}
-          />
-        </div>
-        
-        <div className="transition-all duration-300">
-          <StatsOverview shelves={shelves} />
-        </div>
-        
-        <FilterControls
-          filter={filter}
-          onFilterChange={setFilter}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          totalShelves={shelves.length}
-          filteredCount={filteredShelves.length}
-        />
-        
-        {/* ENHANCED LOADING STATE */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-16 animate-fadeIn">
-            <div className="flex items-center gap-3 text-muted-foreground mb-4">
-              <RotateCcw size={24} className="animate-spin text-blue-600" />
-              <span className="text-lg font-medium">Loading shelf data...</span>
+
+  const handleAcknowledgeAlert = (alertId: string) => {
+    acknowledgeAlert(alertId);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="flex items-center gap-3">
+              <RotateCcw className="w-6 h-6 animate-spin text-blue-400" />
+              <span className="text-lg font-medium text-slate-100">Loading shelf data...</span>
             </div>
-            
-            {/* LOADING SKELETON CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-7xl">
-              {[...Array(8)].map((_, index) => (
-                <div
-                  key={index}
-                  className="animate-fadeInUp animate-shimmer rounded-lg border-2 border-border p-6 h-48"
-                  style={{
-                    animationDelay: `${index * 100}ms`
-                  }}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <header className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold text-slate-100">ShelfScan AI</h1>
+            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/30">
+              LIVE
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => router.push('/')}
+              className="px-4 py-2 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-500/10 transition-colors backdrop-blur-sm"
+            >
+              Dashboard
+            </button>
+            <button 
+              onClick={() => router.push('/alerts')}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/25"
+            >
+              <span>Alert</span>
+              <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm">
+                {activeAlerts.length}
+              </span>
+            </button>
+            <span className="text-sm text-slate-400">
+              {connectionStatus === 'connected' ? 'Live' : 'Polling'} • Last update: {new Date().toLocaleTimeString()}
+            </span>
+          </div>
+        </header>
+
+        {/* Active Alerts */}
+        {activeAlerts.length > 0 && (
+          <section className="mb-8">
+            <div className="bg-amber-950/30 border border-amber-700/40 rounded-xl p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+                  <h2 className="text-lg font-semibold text-slate-100">Active Alerts</h2>
+                  <span className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs font-medium border border-amber-500/30">
+                    {alerts.filter(alert => !alert.acknowledged).length}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => router.push('/alerts')}
+                  className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition-colors"
                 >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="h-6 bg-muted rounded w-24 loading-skeleton"></div>
-                      <div className="h-4 bg-muted rounded w-16 loading-skeleton"></div>
+                  View All <Eye className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {activeAlerts.map(alert => (
+                  <div key={alert.id} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-700/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        alert.type === 'empty' 
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
+                          : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        {alert.type === 'empty' ? 'EMPTY' : 'LOW STOCK'}
+                      </span>
+                      <div>
+                        <p className="font-medium text-slate-100">{alert.product}</p>
+                        <p className="text-sm text-slate-400">Shelf {alert.shelf} • {formatTimeAgo(alert.timestamp)}</p>
+                      </div>
                     </div>
-                    <div className="h-4 bg-muted rounded w-32 loading-skeleton"></div>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-muted rounded w-full loading-skeleton"></div>
-                      <div className="h-3 bg-muted rounded w-3/4 loading-skeleton"></div>
+                    <button 
+                      onClick={() => handleAcknowledgeAlert(alert.id)}
+                      className="px-3 py-1 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-lg shadow-emerald-500/25"
+                    >
+                      Acknowledge
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {remainingAlerts > 0 && (
+                <div className="mt-4 text-center">
+                  <button 
+                    onClick={() => router.push('/alerts')}
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
+                  >
+                    +{remainingAlerts} more alerts • View All Alerts
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-6 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-8 h-8 text-emerald-400" />
+              <div>
+                <p className="text-2xl font-bold text-slate-100">{okCount}</p>
+                <p className="text-sm text-slate-400">Good Stock</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-6 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-8 h-8 text-amber-400" />
+              <div>
+                <p className="text-2xl font-bold text-slate-100">{lowCount}</p>
+                <p className="text-sm text-slate-400">Low Stock</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-6 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-8 h-8 text-red-400" />
+              <div>
+                <p className="text-2xl font-bold text-slate-100">{emptyCount}</p>
+                <p className="text-sm text-slate-400">Empty/Critical</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Store Inventory */}
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-slate-100">
+              Store Inventory <span className="text-slate-400 font-normal">({shelves.length} of {shelves.length} shelves)</span>
+            </h2>
+            <div className="flex gap-4">
+              <select className="px-3 py-2 bg-slate-900/50 border border-slate-700/50 rounded-lg text-sm text-slate-100 backdrop-blur-sm focus:border-blue-500/50 focus:outline-none">
+                <option>All Status</option>
+                <option>Good Stock</option>
+                <option>Low Stock</option>
+                <option>Empty/Critical</option>
+              </select>
+              <select className="px-3 py-2 bg-slate-900/50 border border-slate-700/50 rounded-lg text-sm text-slate-100 backdrop-blur-sm focus:border-blue-500/50 focus:outline-none">
+                <option>Sort by Aisle</option>
+                <option>Sort by Status</option>
+                <option>Sort by Last Scanned</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 gap-4">
+            {shelves.map(shelf => {
+              const criticalProduct = shelf.items.find(item => item.count === 0 || item.count < item.threshold);
+              
+              return (
+                <div key={shelf.id} className={`rounded-xl border p-4 backdrop-blur-sm ${getStatusColor(shelf.status)}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-slate-100">Shelf {shelf.id}</h3>
+                      {getStatusIcon(shelf.status)}
                     </div>
-                    <div className="flex gap-2 mt-4">
-                      <div className="h-10 bg-muted rounded flex-1 loading-skeleton"></div>
-                      <div className="h-10 bg-muted rounded flex-1 loading-skeleton"></div>
-                    </div>
+                    <span className="text-xs text-slate-400">{shelf.aisle}</span>
+                  </div>
+                  
+                  <div className="space-y-1 mb-3">
+                    <p className="text-sm text-slate-300">{getStatusLabel(shelf.status)}</p>
+                    <p className="text-xs text-slate-400">{formatTimeAgo(shelf.lastScanned)}</p>
+                    <p className="text-xs text-slate-400">{shelf.items.length} products</p>
+                    {shelf.status === 'empty' && shelf.items.filter(item => item.count === 0).length > 0 && (
+                      <p className="text-xs text-slate-400">{shelf.items.filter(item => item.count === 0).length} empty</p>
+                    )}
+                    {criticalProduct && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-slate-300">Most Critical:</p>
+                        <p className="text-xs text-slate-400">
+                          {criticalProduct.product} <span className="text-red-400">(Empty)</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    {shelf.status === 'ok' ? (
+                      <button 
+                        onClick={() => handleRequestRescan(shelf.id)}
+                        className="w-full px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm rounded hover:from-blue-700 hover:to-blue-600 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        Rescan
+                      </button>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => criticalProduct && handleMarkRestocked(shelf.id, criticalProduct.product)}
+                          className="w-full px-3 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-lg shadow-emerald-500/25"
+                        >
+                          Mark Restocked
+                        </button>
+                        <button 
+                          onClick={() => handleRequestRescan(shelf.id)}
+                          className="w-full px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm rounded hover:from-blue-700 hover:to-blue-600 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                          Rescan
+                        </button>
+                      </>
+                    )}
+                    <button 
+                      onClick={() => handleViewDetails(shelf.id)}
+                      className="w-full px-3 py-2 border border-slate-600/50 text-slate-300 text-sm rounded hover:bg-slate-800/50 transition-all duration-200 flex items-center justify-center gap-2 backdrop-blur-sm"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View Details
+                    </button>
                   </div>
                 </div>
-              ))}
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Demo Controller */}
+        {showDemo && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center">
+            <div className="bg-slate-900/95 rounded-xl border border-slate-700/50 p-6 backdrop-blur-sm max-w-md w-full mx-4">
+              <DemoController />
+              <button
+                onClick={() => setShowDemo(false)}
+                className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200"
+              >
+                Close Demo
+              </button>
             </div>
           </div>
         )}
         
-        {/* SHELF GRID WITH TRANSITIONS */}
-        {!loading && (
-          <>
-            {filteredShelves.length === 0 ? (
-              <div className="text-center py-12 transition-all duration-300">
-                <div className="text-muted-foreground">
-                  No shelves found matching the current filter.
-                </div>
-                <button 
-                  onClick={() => setFilter('all')}
-                  className="mt-2 text-blue-600 hover:text-blue-800 transition-colors duration-200"
-                >
-                  Show all shelves
-                </button>
-              </div>
-            ) : (
-              <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                  {filteredShelves.map((shelf, index) => (
-                    <div
-                      key={shelf.id}
-                      className={`
-                        w-full animate-fadeInUp transition-all duration-500 hover-lift
-                        ${updatedShelves.has(shelf.id) 
-                          ? 'transform scale-[1.02] ring-2 ring-blue-400 ring-opacity-50 shadow-lg animate-bounce' 
-                          : 'transform scale-100'
-                        }
-                      `}
-                    style={{
-                      animationDelay: `${Math.min(index * 100, 800)}ms`
-                    }}
-                  >
-                    <ShelfCard
-                      shelf={shelf}
-                      onViewDetails={handleViewDetails}
-                      onMarkRestocked={handleMarkRestocked}
-                      onRequestRescan={handleRequestRescan}
-                      className="transition-all duration-300 hover:shadow-xl"
-                    />
-                    {updatedShelves.has(shelf.id) && (
-                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full animate-ping" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+        {/* Floating Demo Toggle */}
+        <button
+          onClick={() => setShowDemo(true)}
+          className="fixed bottom-6 right-6 p-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-full shadow-lg shadow-blue-500/25 hover:from-blue-700 hover:to-blue-600 transition-all duration-200 z-30"
+        >
+          <Eye size={20} />
+        </button>
         
-        {/* SHELF DETAIL MODAL */}
+        {/* Shelf Detail Modal */}
         {selectedShelf && isModalOpen && (
           <ShelfDetailModal
             shelf={selectedShelf}
@@ -572,36 +403,10 @@ const Dashboard: React.FC = () => {
             onRequestRescan={handleRequestRescan}
           />
         )}
-        {/* DEMO CONTROLLER TOGGLE BUTTON & PANEL */}
-        {!showDemo && (
-          <button
-            onClick={() => setShowDemo(true)}
-            className="fixed bottom-4 right-4 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors touch-manipulation"
-            aria-label="Show demo controls"
-          >
-            <Eye size={20} />
-          </button>
-        )}
-        {showDemo && (
-          <ErrorBoundary
-            onError={(error, errorInfo) => {
-              console.error('Demo Controller Error:', error, errorInfo);
-            }}
-            resetKeys={[isModalOpen ? 'modal-open' : 'modal-closed', filter, sortBy, showDemo ? 'show' : 'hide']}
-          >
-            <DemoController />
-            {/* Hide DemoController when it requests to be hidden */}
-            {/* DemoController already has its own close button, so no need to add another here */}
-          </ErrorBoundary>
-        )}
-      </main>
+      </div>
     </div>
   );
 };
-
-// ============================================================================
-// PAGE WRAPPER
-// ============================================================================
 
 export default function DashboardPage() {
   return <Dashboard />;
