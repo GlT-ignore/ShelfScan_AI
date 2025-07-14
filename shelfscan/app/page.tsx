@@ -13,7 +13,8 @@ import {
   WifiOff,
   AlertTriangle,
   CheckCircle,
-  Activity
+  Activity,
+  Eye
 } from 'lucide-react';
 import { useShelves, useAlerts, useStaffActions } from '../lib/context/AppContext';
 import { useRealTimeUpdates } from '../lib/hooks/useRealTimeUpdates';
@@ -370,6 +371,7 @@ const Dashboard: React.FC = () => {
   const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatedShelves, setUpdatedShelves] = useState<Set<string>>(new Set());
+  const [showDemo, setShowDemo] = useState(false);
   
   // Track recently updated shelves for visual feedback
   useEffect(() => {
@@ -452,8 +454,8 @@ const Dashboard: React.FC = () => {
         isConnected={isConnected}
       />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="transition-all duration-300">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
+        <div className="w-full transition-all duration-300">
           <AlertBanner 
             alerts={alerts}
             onAcknowledge={acknowledgeAlert}
@@ -529,17 +531,17 @@ const Dashboard: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredShelves.map((shelf, index) => (
-                  <div
-                    key={shelf.id}
-                    className={`
-                      animate-fadeInUp transition-all duration-500 hover-lift
-                      ${updatedShelves.has(shelf.id) 
-                        ? 'transform scale-[1.02] ring-2 ring-blue-400 ring-opacity-50 shadow-lg animate-bounce' 
-                        : 'transform scale-100'
-                      }
-                    `}
+              <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                  {filteredShelves.map((shelf, index) => (
+                    <div
+                      key={shelf.id}
+                      className={`
+                        w-full animate-fadeInUp transition-all duration-500 hover-lift
+                        ${updatedShelves.has(shelf.id) 
+                          ? 'transform scale-[1.02] ring-2 ring-blue-400 ring-opacity-50 shadow-lg animate-bounce' 
+                          : 'transform scale-100'
+                        }
+                      `}
                     style={{
                       animationDelay: `${Math.min(index * 100, 800)}ms`
                     }}
@@ -570,16 +572,28 @@ const Dashboard: React.FC = () => {
             onRequestRescan={handleRequestRescan}
           />
         )}
-        
-        {/* DEMO CONTROLLER WITH ERROR BOUNDARY */}
-        <ErrorBoundary
-          onError={(error, errorInfo) => {
-            console.error('Demo Controller Error:', error, errorInfo);
-          }}
-          resetKeys={[isModalOpen ? 'modal-open' : 'modal-closed', filter, sortBy]} // Reset on major state changes
-        >
-          <DemoController />
-        </ErrorBoundary>
+        {/* DEMO CONTROLLER TOGGLE BUTTON & PANEL */}
+        {!showDemo && (
+          <button
+            onClick={() => setShowDemo(true)}
+            className="fixed bottom-4 right-4 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors touch-manipulation"
+            aria-label="Show demo controls"
+          >
+            <Eye size={20} />
+          </button>
+        )}
+        {showDemo && (
+          <ErrorBoundary
+            onError={(error, errorInfo) => {
+              console.error('Demo Controller Error:', error, errorInfo);
+            }}
+            resetKeys={[isModalOpen ? 'modal-open' : 'modal-closed', filter, sortBy, showDemo ? 'show' : 'hide']}
+          >
+            <DemoController />
+            {/* Hide DemoController when it requests to be hidden */}
+            {/* DemoController already has its own close button, so no need to add another here */}
+          </ErrorBoundary>
+        )}
       </main>
     </div>
   );

@@ -135,6 +135,8 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
         active:scale-[0.98] active:shadow-md
         ${statusConfig.bgColor} ${statusConfig.borderColor}
         ${className}
+        overflow-hidden min-w-0
+        min-h-[420px] w-full
       `}
       role="article"
       aria-label={`Shelf ${shelf.id} status: ${statusConfig.label}`}
@@ -221,43 +223,14 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
       </div>
       {/* TOUCH-OPTIMIZED ACTION BUTTONS SECTION */}
       <div className="px-4 pb-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* VIEW DETAILS BUTTON - Touch-optimized */}
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails?.(shelf.id);
-            }}
-            className="
-              flex-1 text-sm font-medium px-4 py-3 min-h-[48px] bg-white text-gray-700 
-              rounded-lg border-2 border-gray-300 
-              hover:bg-gray-50 hover:border-gray-400 
-              active:bg-gray-100 active:scale-[0.98]
-              transition-all duration-200 touch-manipulation
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-              inline-flex items-center justify-center gap-2
-            "
-            aria-label={`View details for shelf ${shelf.id}`}
-          >
-            <Package size={16} aria-hidden="true" />
-            <span>View Details</span>
-          </button>
-          {/* RESTOCK BUTTON - Only show if there are issues */}
+        <div className="flex flex-row gap-3 mb-3">
           {showCounts && metrics.hasIssues && criticalProduct && (
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onMarkRestocked?.(shelf.id, criticalProduct.product);
               }}
-              className="
-                flex-1 text-sm font-medium px-4 py-3 min-h-[48px] bg-green-600 text-white 
-                rounded-lg border-2 border-green-600
-                hover:bg-green-700 hover:border-green-700 
-                active:bg-green-800 active:scale-[0.98]
-                transition-all duration-200 touch-manipulation
-                focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
-                inline-flex items-center justify-center gap-2
-              "
+              className="flex-1 min-w-0 min-w-[120px] whitespace-nowrap text-xs sm:text-sm font-medium px-1.5 sm:px-3 py-3 min-h-[48px] bg-green-600 text-white rounded-lg border-2 border-green-600 hover:bg-green-700 hover:border-green-700 active:bg-green-800 active:scale-[0.98] transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 inline-flex items-center justify-center gap-2"
               aria-label={`Mark ${criticalProduct.product} as restocked on shelf ${shelf.id}`}
             >
               <CheckCircle size={16} aria-hidden="true" />
@@ -265,21 +238,12 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
               <span className="sm:hidden">Restock</span>
             </button>
           )}
-          {/* RESCAN BUTTON - Touch-optimized */}
           <button 
             onClick={(e) => {
               e.stopPropagation();
               onRequestRescan?.(shelf.id);
             }}
-            className="
-              flex-1 text-sm font-medium px-4 py-3 min-h-[48px] bg-blue-600 text-white 
-              rounded-lg border-2 border-blue-600
-              hover:bg-blue-700 hover:border-blue-700 
-              active:bg-blue-800 active:scale-[0.98]
-              transition-all duration-200 touch-manipulation
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-              inline-flex items-center justify-center gap-2
-            "
+            className="flex-1 min-w-0 min-w-[120px] whitespace-nowrap text-xs sm:text-sm md:text-base font-medium px-2 sm:px-4 py-3 min-h-[48px] bg-blue-600 text-white rounded-lg border-2 border-blue-600 hover:bg-blue-700 hover:border-blue-700 active:bg-blue-800 active:scale-[0.98] transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center justify-center gap-2"
             aria-label={`Request rescan for shelf ${shelf.id}`}
           >
             <RefreshCw size={16} aria-hidden="true" />
@@ -287,6 +251,17 @@ const ShelfCard: React.FC<ShelfCardProps> = ({
             <span className="sm:hidden">Scan</span>
           </button>
         </div>
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails?.(shelf.id);
+          }}
+          className="w-full min-w-0 whitespace-nowrap text-xs sm:text-sm md:text-base font-medium px-2 sm:px-4 py-3 min-h-[48px] bg-white text-gray-700 rounded-lg border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 active:scale-[0.98] transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center justify-center gap-2"
+          aria-label={`View details for shelf ${shelf.id}`}
+        >
+          <Package size={16} aria-hidden="true" />
+          <span>View Details</span>
+        </button>
       </div>
     </div>
   );
