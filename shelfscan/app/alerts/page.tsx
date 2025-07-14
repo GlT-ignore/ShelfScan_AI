@@ -16,8 +16,6 @@ import {
   Package, 
   Clock, 
   CheckCircle,
-  Trash2, 
-  ExternalLink,
   MapPin,
   RotateCcw
 } from 'lucide-react';
