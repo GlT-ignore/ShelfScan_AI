@@ -52,7 +52,6 @@ const DemoController: React.FC = () => {
 
   const handleResetData = () => {
     // Reset to fresh mock data
-    const mockData = generateMockData();
     // This would require adding reset actions to the context
     // For now, just trigger a page refresh as a fallback
     window.location.reload();
