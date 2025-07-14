@@ -17,11 +17,6 @@ const ShelfDetailModal: React.FC<ShelfDetailModalProps> = ({
   onMarkRestocked,
   onRequestRescan
 }) => {
-  // Derive product information from shelf items
-  const primaryProduct = shelf.items.length > 0 ? shelf.items[0] : null;
-  const totalStock = shelf.items.reduce((sum, item) => sum + item.count, 0);
-  const productName = primaryProduct?.product || 'No Product';
-
   const formatDateTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleString('en-US', {
       year: 'numeric',
@@ -106,7 +101,9 @@ const ShelfDetailModal: React.FC<ShelfDetailModalProps> = ({
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <Package size={16} className="text-gray-400" />
-                <span className="font-medium">{productName}</span>
+                <span className="font-medium">
+                  {shelf.items.length > 0 ? shelf.items[0].product : 'No products'}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-gray-400" />
@@ -128,7 +125,9 @@ const ShelfDetailModal: React.FC<ShelfDetailModalProps> = ({
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Current Stock</span>
-                  <span className="font-medium text-gray-900">{totalStock} units</span>
+                  <span className="font-medium text-gray-900">
+                    {shelf.items.reduce((total, item) => total + item.count, 0)} units
+                  </span>
                 </div>
                 {shelf.status === 'low' && (
                   <div className="mt-2 text-sm text-amber-600">
@@ -146,7 +145,7 @@ const ShelfDetailModal: React.FC<ShelfDetailModalProps> = ({
               {shelf.status === 'empty' && (
                 <button
                   onClick={() => {
-                    onMarkRestocked(shelf.id, productName);
+                    onMarkRestocked(shelf.id, shelf.items.length > 0 ? shelf.items[0].product : 'Unknown product');
                     onClose();
                   }}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white 

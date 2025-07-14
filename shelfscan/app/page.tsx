@@ -10,12 +10,15 @@ import { AppProvider, useShelves, useAlerts, useStaffActions } from '../lib/cont
 import { useRealTimeUpdates } from '../lib/hooks/useRealTimeUpdates';
 import ShelfCard from '../components/ShelfCard';
 import AlertBanner from '../components/AlertBanner';
+import NotificationBadge from '../components/NotificationBadge';
 import ShelfDetailModal from '../components/ShelfDetailModal';
 import DemoController from '../components/DemoController';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { MobileNavigation, DesktopNavigation } from '../components/MobileNavigation';
 import { 
+  Bell, 
   Filter, 
+  RotateCcw, 
   Wifi, 
   WifiOff,
   AlertTriangle,
@@ -32,8 +35,18 @@ import { useRouter } from 'next/navigation';
 
 const RealTimeStatus: React.FC<{ 
   connectionStatus: 'connected' | 'polling' | 'disconnected';
-}> = ({ connectionStatus }) => {
+  isConnected: boolean;
+}> = ({ connectionStatus, isConnected }) => {
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [recentUpdate, setRecentUpdate] = useState(false);
+
+  // Update timestamp periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdate(new Date());
+    }, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   // Show pulse effect for recent updates
   useEffect(() => {
@@ -95,7 +108,8 @@ const RealTimeStatus: React.FC<{
 
 const DashboardHeader: React.FC<{ 
   connectionStatus: 'connected' | 'polling' | 'disconnected';
-}> = ({ connectionStatus }) => {
+  isConnected: boolean;
+}> = ({ connectionStatus, isConnected }) => {
   const [isMounted, setIsMounted] = useState(false);
   const { alerts } = useAlerts();
   
@@ -126,6 +140,7 @@ const DashboardHeader: React.FC<{
               <div className="hidden sm:block">
                 <RealTimeStatus 
                   connectionStatus={connectionStatus}
+                  isConnected={isConnected}
                 />
               </div>
             </div>
@@ -137,6 +152,7 @@ const DashboardHeader: React.FC<{
             <div className="block sm:hidden">
               <RealTimeStatus 
                 connectionStatus={connectionStatus}
+                isConnected={isConnected}
               />
             </div>
             
@@ -170,6 +186,8 @@ const DashboardHeader: React.FC<{
   );
 };
 
+
+
 // ============================================================================
 // FILTER CONTROLS COMPONENT
 // ============================================================================
@@ -192,45 +210,65 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   filteredCount
 }) => {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <Filter size={20} />
-            Inventory Overview
-          </h2>
-          
-          <div className="text-sm text-gray-500">
-            Showing {filteredCount} of {totalShelves} shelves
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {/* FILTER DROPDOWN */}
-          <select
+    <div className="flex flex-col gap-4 mb-6">
+      {/* TITLE SECTION */}
+      <div className="flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-gray-900">
+          Store Inventory
+        </h2>
+        <span className="text-sm text-gray-500">
+          ({filteredCount} of {totalShelves} shelves)
+        </span>
+      </div>
+      
+      {/* TOUCH-OPTIMIZED CONTROLS */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* STATUS FILTER - Touch-optimized */}
+        <div className="flex items-center gap-2 flex-1">
+          <Filter size={16} className="text-gray-400" />
+          <select 
             value={filter}
-            onChange={(e) => onFilterChange(e.target.value as 'all' | 'ok' | 'low' | 'empty')}
-            className="border-2 border-gray-300 rounded-lg px-4 py-2 text-sm font-medium
-                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            onChange={(e) => onFilterChange(e.target.value as any)}
+            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-sm font-medium
+                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                     touch-manipulation bg-white min-h-[48px]"
           >
-            <option value="all">All Shelves</option>
-            <option value="ok">✅ In Stock</option>
+            <option value="all">All Status</option>
+            <option value="ok">✅ Good Stock</option>
             <option value="low">⚠️ Low Stock</option>
             <option value="empty">🚨 Empty</option>
           </select>
-          
-          {/* SORT DROPDOWN */}
-          <select
+        </div>
+        
+        {/* SORT BY - Touch-optimized */}
+        <div className="flex-1">
+          <select 
             value={sortBy}
-            onChange={(e) => onSortChange(e.target.value as 'aisle' | 'status' | 'lastScanned')}
-            className="border-2 border-gray-300 rounded-lg px-4 py-2 text-sm font-medium
-                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            onChange={(e) => onSortChange(e.target.value as any)}
+            className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm font-medium
+                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                     touch-manipulation bg-white min-h-[48px]"
           >
             <option value="aisle">Sort by Aisle</option>
             <option value="status">Sort by Status</option>
-            <option value="lastScanned">Sort by Last Scanned</option>
+            <option value="lastScanned">Sort by Last Scan</option>
           </select>
         </div>
+        
+        {/* CLEAR FILTERS - Touch-optimized */}
+        {filter !== 'all' && (
+          <button
+            onClick={() => onFilterChange('all')}
+            className="flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] text-sm font-medium
+                     text-gray-600 hover:text-gray-800 border-2 border-gray-300 rounded-lg 
+                     hover:bg-gray-50 active:bg-gray-100 active:scale-[0.98] 
+                     transition-all duration-200 touch-manipulation
+                     focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            <RotateCcw size={16} />
+            <span>Clear</span>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -241,204 +279,330 @@ const FilterControls: React.FC<FilterControlsProps> = ({
 // ============================================================================
 
 const StatsOverview: React.FC<{ shelves: Shelf[] }> = ({ shelves }) => {
-  const stats = {
-    total: shelves.length,
-    ok: shelves.filter(s => s.status === 'ok').length,
-    low: shelves.filter(s => s.status === 'low').length,
-    empty: shelves.filter(s => s.status === 'empty').length
-  };
-
+  const okShelves = shelves.filter(s => s.status === 'ok').length;
+  const lowShelves = shelves.filter(s => s.status === 'low').length;
+  const emptyShelves = shelves.filter(s => s.status === 'empty').length;
+  
+  const stats = [
+    {
+      value: okShelves,
+      label: 'Good Stock',
+      icon: CheckCircle,
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
+      iconColor: 'text-green-600',
+      textColor: 'text-green-800',
+      labelColor: 'text-green-600',
+      delay: 0
+    },
+    {
+      value: lowShelves,
+      label: 'Low Stock',
+      icon: AlertTriangle,
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200',
+      iconColor: 'text-yellow-600',
+      textColor: 'text-yellow-800',
+      labelColor: 'text-yellow-600',
+      delay: 100
+    },
+    {
+      value: emptyShelves,
+      label: 'Empty/Critical',
+      icon: AlertTriangle,
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200',
+      iconColor: 'text-red-600',
+      textColor: 'text-red-800',
+      labelColor: 'text-red-600',
+      delay: 200
+    }
+  ];
+  
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-2">
-          <CheckCircle size={20} className="text-green-600" />
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{stats.ok}</div>
-            <div className="text-sm text-gray-500">In Stock</div>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      {stats.map((stat, index) => {
+        const Icon = stat.icon;
+        return (
+          <div 
+            key={stat.label}
+            className={`
+              ${stat.bgColor} ${stat.borderColor} rounded-lg p-4 border-2
+              animate-fadeInUp hover-lift transition-all duration-300 cursor-pointer
+              hover:scale-105 active:scale-95 group
+            `}
+            style={{
+              animationDelay: `${stat.delay}ms`
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-full ${stat.bgColor} ${stat.borderColor} border group-hover:animate-float`}>
+                <Icon size={24} className={`${stat.iconColor} transition-transform duration-300 group-hover:scale-110`} />
+              </div>
+              <div>
+                <div className={`text-3xl font-bold ${stat.textColor} transition-all duration-300 group-hover:scale-110`}>
+                  {stat.value}
+                </div>
+                <div className={`text-sm font-medium ${stat.labelColor}`}>
+                  {stat.label}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-2">
-          <AlertTriangle size={20} className="text-amber-600" />
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{stats.low}</div>
-            <div className="text-sm text-gray-500">Low Stock</div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-2">
-          <AlertTriangle size={20} className="text-red-600" />
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{stats.empty}</div>
-            <div className="text-sm text-gray-500">Empty</div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-2">
-          <Clock size={20} className="text-blue-600" />
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-500">Total Shelves</div>
-          </div>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 };
 
 // ============================================================================
-// MAIN DASHBOARD COMPONENT
+// UPDATED DASHBOARD COMPONENT WITH REAL-TIME UPDATES
 // ============================================================================
 
 const Dashboard: React.FC = () => {
-  const { shelves } = useShelves();
-  const { alerts } = useAlerts();
-  const { markRestocked, requestRescan } = useStaffActions();
-  const { connectionStatus } = useRealTimeUpdates();
+  const { shelves, loading } = useShelves();
+  const { alerts, acknowledgeAlert } = useAlerts();
+  const { markRestocked } = useStaffActions();
   const router = useRouter();
   
+  // Initialize real-time updates hook
+  const { requestRescan, isConnected, connectionStatus } = useRealTimeUpdates({
+    debug: process.env.NODE_ENV === 'development',
+    pollingInterval: 6000,
+    wsUpdateInterval: 10000,
+    wsUpdateProbability: 0.25,
+    pollingUpdateProbability: 0.15
+  });
+  
+  // Local state for UI
   const [filter, setFilter] = useState<'all' | 'ok' | 'low' | 'empty'>('all');
   const [sortBy, setSortBy] = useState<'aisle' | 'status' | 'lastScanned'>('aisle');
   const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null);
-  const [showModal, setShowModal] = useState(false);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updatedShelves, setUpdatedShelves] = useState<Set<string>>(new Set());
+  
+  // Track recently updated shelves for visual feedback
+  useEffect(() => {
+    const shelfIds = new Set(shelves.map(s => s.id));
+    const newlyUpdated = new Set<string>();
+    
+    // Check for changes (this is a simplified approach)
+    shelfIds.forEach(id => {
+      const shelf = shelves.find(s => s.id === id);
+      if (shelf) {
+        const lastScannedTime = new Date(shelf.lastScanned).getTime();
+        const fiveSecondsAgo = Date.now() - 5000;
+        
+        if (lastScannedTime > fiveSecondsAgo) {
+          newlyUpdated.add(id);
+        }
+      }
+    });
+    
+    setUpdatedShelves(newlyUpdated);
+    
+    // Clear the updated status after 3 seconds
+    if (newlyUpdated.size > 0) {
+      const timer = setTimeout(() => {
+        setUpdatedShelves(new Set());
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [shelves]);
+  
   // Filter and sort shelves
-  const filteredAndSortedShelves = shelves
-    .filter(shelf => {
-      if (filter === 'all') return true;
-      return shelf.status === filter;
-    })
+  const filteredShelves = shelves
+    .filter(shelf => filter === 'all' || shelf.status === filter)
     .sort((a, b) => {
       switch (sortBy) {
         case 'aisle':
-          return a.aisle.localeCompare(b.aisle);
+          return a.aisle.localeCompare(b.aisle) || a.id.localeCompare(b.id);
         case 'status':
-          return a.status.localeCompare(b.status);
+          const statusOrder = { empty: 0, low: 1, ok: 2 };
+          return statusOrder[a.status] - statusOrder[b.status];
         case 'lastScanned':
           return new Date(b.lastScanned).getTime() - new Date(a.lastScanned).getTime();
         default:
           return 0;
       }
     });
-
+  
+  // Event handlers
   const handleViewDetails = (shelfId: string) => {
     const shelf = shelves.find(s => s.id === shelfId);
     if (shelf) {
       setSelectedShelf(shelf);
-      setShowModal(true);
+      setIsModalOpen(true);
     }
   };
-
+  
   const handleCloseModal = () => {
-    setShowModal(false);
+    setIsModalOpen(false);
     setSelectedShelf(null);
   };
-
+  
   const handleMarkRestocked = (shelfId: string, productName: string) => {
     markRestocked(shelfId, productName);
   };
-
+  
+  // Use the real-time updates hook for rescanning
   const handleRequestRescan = async (shelfId: string) => {
     try {
       await requestRescan(shelfId);
+      // Visual feedback will be handled by the shelf update detection
     } catch (error) {
-      console.error('Failed to request rescan:', error);
+      console.error('Failed to rescan shelf:', error);
     }
   };
-
+  
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* HEADER */}
+    <div className="min-h-screen bg-gray-50 transition-all duration-300">
       <DashboardHeader 
         connectionStatus={connectionStatus}
+        isConnected={isConnected}
       />
-
-      {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ALERT BANNER */}
-        {alerts.length > 0 && (
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="transition-all duration-300">
           <AlertBanner 
-            alerts={alerts.filter(alert => !alert.acknowledged)}
-            onViewAlerts={() => router.push('/alerts')}
+            alerts={alerts}
+            onAcknowledge={acknowledgeAlert}
+            onViewAll={() => router.push('/alerts')}
           />
-        )}
-
-        {/* STATS OVERVIEW */}
-        <StatsOverview shelves={shelves} />
-
-        {/* FILTER CONTROLS */}
-        <FilterControls 
+        </div>
+        
+        <div className="transition-all duration-300">
+          <StatsOverview shelves={shelves} />
+        </div>
+        
+        <FilterControls
           filter={filter}
           onFilterChange={setFilter}
           sortBy={sortBy}
           onSortChange={setSortBy}
           totalShelves={shelves.length}
-          filteredCount={filteredAndSortedShelves.length}
+          filteredCount={filteredShelves.length}
         />
-
-        {/* SHELVES GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredAndSortedShelves.map((shelf) => (
-            <ShelfCard
-              key={shelf.id}
-              shelf={shelf}
-              onViewDetails={handleViewDetails}
-              onMarkRestocked={handleMarkRestocked}
-              onRequestRescan={handleRequestRescan}
-            />
-          ))}
-        </div>
-
-        {/* EMPTY STATE */}
-        {filteredAndSortedShelves.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-500">
-              <AlertTriangle size={48} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No shelves found</h3>
-              <p className="text-gray-500">
-                {filter !== 'all' 
-                  ? 'Try adjusting your filter to see more results.'
-                  : 'No shelves are currently configured.'
-                }
-              </p>
+        
+        {/* ENHANCED LOADING STATE */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-16 animate-fadeIn">
+            <div className="flex items-center gap-3 text-gray-600 mb-4">
+              <RotateCcw size={24} className="animate-spin text-blue-600" />
+              <span className="text-lg font-medium">Loading shelf data...</span>
+            </div>
+            
+            {/* LOADING SKELETON CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-7xl">
+              {[...Array(8)].map((_, index) => (
+                <div
+                  key={index}
+                  className="animate-fadeInUp animate-shimmer rounded-lg border-2 border-gray-200 p-6 h-48"
+                  style={{
+                    animationDelay: `${index * 100}ms`
+                  }}
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="h-6 bg-gray-300 rounded w-24 loading-skeleton"></div>
+                      <div className="h-4 bg-gray-300 rounded w-16 loading-skeleton"></div>
+                    </div>
+                    <div className="h-4 bg-gray-300 rounded w-32 loading-skeleton"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-300 rounded w-full loading-skeleton"></div>
+                      <div className="h-3 bg-gray-300 rounded w-3/4 loading-skeleton"></div>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <div className="h-10 bg-gray-300 rounded flex-1 loading-skeleton"></div>
+                      <div className="h-10 bg-gray-300 rounded flex-1 loading-skeleton"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
-      </div>
-
-      {/* SHELF DETAIL MODAL */}
-      {showModal && selectedShelf && (
-        <ShelfDetailModal
-          shelf={selectedShelf}
-          onClose={handleCloseModal}
-          onMarkRestocked={handleMarkRestocked}
-          onRequestRescan={handleRequestRescan}
-        />
-      )}
-
-      {/* DEMO CONTROLLER */}
-      <DemoController />
+        
+        {/* SHELF GRID WITH TRANSITIONS */}
+        {!loading && (
+          <>
+            {filteredShelves.length === 0 ? (
+              <div className="text-center py-12 transition-all duration-300">
+                <div className="text-gray-500">
+                  No shelves found matching the current filter.
+                </div>
+                <button 
+                  onClick={() => setFilter('all')}
+                  className="mt-2 text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                >
+                  Show all shelves
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredShelves.map((shelf, index) => (
+                  <div
+                    key={shelf.id}
+                    className={`
+                      animate-fadeInUp transition-all duration-500 hover-lift
+                      ${updatedShelves.has(shelf.id) 
+                        ? 'transform scale-[1.02] ring-2 ring-blue-400 ring-opacity-50 shadow-lg animate-bounce' 
+                        : 'transform scale-100'
+                      }
+                    `}
+                    style={{
+                      animationDelay: `${Math.min(index * 100, 800)}ms`
+                    }}
+                  >
+                    <ShelfCard
+                      shelf={shelf}
+                      onViewDetails={handleViewDetails}
+                      onMarkRestocked={handleMarkRestocked}
+                      onRequestRescan={handleRequestRescan}
+                      className="transition-all duration-300 hover:shadow-xl"
+                    />
+                    {updatedShelves.has(shelf.id) && (
+                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full animate-ping" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+        
+        {/* SHELF DETAIL MODAL */}
+        {selectedShelf && isModalOpen && (
+          <ShelfDetailModal
+            shelf={selectedShelf}
+            onClose={handleCloseModal}
+            onMarkRestocked={handleMarkRestocked}
+            onRequestRescan={handleRequestRescan}
+          />
+        )}
+        
+        {/* DEMO CONTROLLER WITH ERROR BOUNDARY */}
+        <ErrorBoundary
+          onError={(error, errorInfo) => {
+            console.error('Demo Controller Error:', error, errorInfo);
+          }}
+          resetKeys={[isModalOpen ? 'modal-open' : 'modal-closed', filter, sortBy]} // Reset on major state changes
+        >
+          <DemoController />
+        </ErrorBoundary>
+      </main>
     </div>
   );
 };
 
 // ============================================================================
-// PAGE COMPONENT
+// PAGE WRAPPER WITH PROVIDER
 // ============================================================================
 
 export default function DashboardPage() {
   return (
     <AppProvider>
-      <ErrorBoundary>
-        <Dashboard />
-      </ErrorBoundary>
+      <Dashboard />
     </AppProvider>
   );
 }

@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
-import { AppState, ActionType, Shelf, Alert, Product } from '../types';
+import { AppState, ActionType } from '../types';
 import { generateMockData } from '../mockData';
 
 // ============================================================================
@@ -45,19 +45,19 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export type AppAction =
   | { type: 'INIT'; payload: AppState }
   // Shelf data actions
-  | { type: 'FETCH_SHELVES_START'; payload?: Shelf[] }
-  | { type: 'FETCH_SHELVES_SUCCESS'; payload: Shelf[] }
-  | { type: 'FETCH_SHELVES_ERROR'; payload: string }
-  | { type: 'UPDATE_SHELF'; payload: Shelf }
-  | { type: 'SET_SHELVES'; payload: Shelf[] }
+  | { type: 'FETCH_SHELVES_START'; payload?: any }
+  | { type: 'FETCH_SHELVES_SUCCESS'; payload: any }
+  | { type: 'FETCH_SHELVES_ERROR'; payload: any }
+  | { type: 'UPDATE_SHELF'; payload: any }
+  | { type: 'SET_SHELVES'; payload: any }
   // Alert data actions
-  | { type: 'FETCH_ALERTS_START'; payload?: Alert[] }
-  | { type: 'FETCH_ALERTS_SUCCESS'; payload: Alert[] }
-  | { type: 'FETCH_ALERTS_ERROR'; payload: string }
-  | { type: 'ADD_ALERT'; payload: Alert }
+  | { type: 'FETCH_ALERTS_START'; payload?: any }
+  | { type: 'FETCH_ALERTS_SUCCESS'; payload: any }
+  | { type: 'FETCH_ALERTS_ERROR'; payload: any }
+  | { type: 'ADD_ALERT'; payload: any }
   | { type: 'ACKNOWLEDGE_ALERT'; payload: string }
   | { type: 'REMOVE_ALERT'; payload: string }
-  | { type: 'SET_ALERTS'; payload: Alert[] }
+  | { type: 'SET_ALERTS'; payload: any }
   // UI state actions
   | { type: 'SELECT_SHELF'; payload: string }
   | { type: 'CLEAR_SELECTED_SHELF' }
@@ -200,7 +200,7 @@ function appReducer(state: AppState | null, action: AppAction): AppState {
           if (shelf.id === action.payload.shelfId) {
             return {
               ...shelf,
-              items: shelf.items.map((product: Product) =>
+              items: shelf.items.map((product: import('../types').Product) =>
                 product.product === action.payload.productName
                   ? { ...product, count: product.count + 1 }
                   : product
@@ -303,7 +303,7 @@ export const useShelves = () => {
     filterOptions: state.filterOptions,
     
     // Actions
-    updateShelf: (shelf: Shelf) => dispatch({ type: 'UPDATE_SHELF', payload: shelf }),
+    updateShelf: (shelf: any) => dispatch({ type: 'UPDATE_SHELF', payload: shelf }),
     selectShelf: (shelfId: string) => dispatch({ type: 'SELECT_SHELF', payload: shelfId }),
     clearSelection: () => dispatch({ type: 'CLEAR_SELECTED_SHELF' }),
     setFilter: (key: 'aisle' | 'status', value: string | null) => 
@@ -324,7 +324,7 @@ export const useAlerts = () => {
     unacknowledgedAlerts: state.alerts.filter(alert => !alert.acknowledged),
     
     // Actions
-    addAlert: (alert: Alert) => dispatch({ type: 'ADD_ALERT', payload: alert }),
+    addAlert: (alert: any) => dispatch({ type: 'ADD_ALERT', payload: alert }),
     acknowledgeAlert: (alertId: string) => dispatch({ type: 'ACKNOWLEDGE_ALERT', payload: alertId }),
     removeAlert: (alertId: string) => dispatch({ type: 'REMOVE_ALERT', payload: alertId })
   };

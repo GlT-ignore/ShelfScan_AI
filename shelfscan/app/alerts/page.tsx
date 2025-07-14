@@ -8,9 +8,9 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { AppProvider, useAlerts } from '../../lib/context/AppContext';
+import { AppProvider, useAlerts, useStaffActions } from '../../lib/context/AppContext';
 import { Alert } from '../../lib/types';
-import { MobileNavigation } from '../../components/MobileNavigation';
+import { MobileNavigation, DesktopNavigation } from '../../components/MobileNavigation';
 import { 
   ArrowLeft,
   Filter, 
@@ -20,7 +20,10 @@ import {
   Clock,
   MapPin,
   Package,
-  RotateCcw
+  Eye,
+  EyeOff,
+  RotateCcw,
+  Calendar
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -35,12 +38,7 @@ interface FilterControlsProps {
     search: string;
     dateRange: 'all' | 'today' | 'week' | 'month';
   };
-  onFiltersChange: (filters: {
-    type: 'all' | 'empty' | 'low';
-    status: 'all' | 'acknowledged' | 'unacknowledged';
-    search: string;
-    dateRange: 'all' | 'today' | 'week' | 'month';
-  }) => void;
+  onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
 }
 
@@ -95,7 +93,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         {/* ALERT TYPE - Touch-optimized */}
         <select
           value={filters.type}
-          onChange={(e) => onFiltersChange({ ...filters, type: e.target.value as 'all' | 'empty' | 'low' })}
+          onChange={(e) => onFiltersChange({ ...filters, type: e.target.value as any })}
           className="border-2 border-gray-300 rounded-lg px-4 py-3 min-h-[48px] text-sm font-medium
                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation bg-white"
         >
@@ -107,7 +105,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         {/* ACKNOWLEDGMENT STATUS - Touch-optimized */}
         <select
           value={filters.status}
-          onChange={(e) => onFiltersChange({ ...filters, status: e.target.value as 'all' | 'acknowledged' | 'unacknowledged' })}
+          onChange={(e) => onFiltersChange({ ...filters, status: e.target.value as any })}
           className="border-2 border-gray-300 rounded-lg px-4 py-3 min-h-[48px] text-sm font-medium
                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation bg-white"
         >
@@ -120,7 +118,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         <div className="sm:col-span-2">
           <select
             value={filters.dateRange}
-            onChange={(e) => onFiltersChange({ ...filters, dateRange: e.target.value as 'all' | 'today' | 'week' | 'month' })}
+            onChange={(e) => onFiltersChange({ ...filters, dateRange: e.target.value as any })}
             className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 min-h-[48px] text-sm font-medium
                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation bg-white"
           >
@@ -250,7 +248,10 @@ const AlertRow: React.FC<AlertRowProps> = ({ alert, onAcknowledge, onViewShelf }
               <span>Acknowledge</span>
             </button>
           ) : (
-            <span className="text-sm text-gray-500">Acknowledged</span>
+            <div className="flex items-center gap-2 text-sm text-gray-500 px-4 py-3">
+              <CheckCircle size={16} />
+              <span>Acknowledged</span>
+            </div>
           )}
         </div>
       </td>
@@ -259,60 +260,48 @@ const AlertRow: React.FC<AlertRowProps> = ({ alert, onAcknowledge, onViewShelf }
 };
 
 // ============================================================================
-// MAIN CONTENT COMPONENT
+// MAIN ALERTS PAGE COMPONENT
 // ============================================================================
 
 const AlertsPageContent: React.FC = () => {
   const { alerts, acknowledgeAlert } = useAlerts();
+  const { markRestocked } = useStaffActions();
   
-  const [filters, setFilters] = useState<{
-    type: 'all' | 'empty' | 'low';
-    status: 'all' | 'acknowledged' | 'unacknowledged';
-    search: string;
-    dateRange: 'all' | 'today' | 'week' | 'month';
-  }>({
-    type: 'all',
-    status: 'all',
+  // Filter state
+  const [filters, setFilters] = useState({
+    type: 'all' as 'all' | 'empty' | 'low',
+    status: 'all' as 'all' | 'acknowledged' | 'unacknowledged',
     search: '',
-    dateRange: 'all'
+    dateRange: 'all' as 'all' | 'today' | 'week' | 'month'
   });
-
+  
+  // Filtered alerts
   const filteredAlerts = useMemo(() => {
     return alerts.filter(alert => {
       // Type filter
-      if (filters.type !== 'all' && alert.type !== filters.type) {
-        return false;
-      }
+      if (filters.type !== 'all' && alert.type !== filters.type) return false;
       
       // Status filter
-      if (filters.status !== 'all') {
-        if (filters.status === 'acknowledged' && !alert.acknowledged) {
-          return false;
-        }
-        if (filters.status === 'unacknowledged' && alert.acknowledged) {
-          return false;
-        }
-      }
+      if (filters.status === 'acknowledged' && !alert.acknowledged) return false;
+      if (filters.status === 'unacknowledged' && alert.acknowledged) return false;
       
       // Search filter
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
-        const matchesProduct = alert.product.toLowerCase().includes(searchLower);
-        const matchesShelf = alert.shelf.toLowerCase().includes(searchLower);
-        if (!matchesProduct && !matchesShelf) {
+        if (!alert.product.toLowerCase().includes(searchLower) && 
+            !alert.shelf.toLowerCase().includes(searchLower)) {
           return false;
         }
       }
       
-      // Date range filter
+      // Date filter
       if (filters.dateRange !== 'all') {
         const alertDate = new Date(alert.timestamp);
         const now = new Date();
         
         switch (filters.dateRange) {
           case 'today':
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            if (alertDate < today) return false;
+            if (alertDate.toDateString() !== now.toDateString()) return false;
             break;
           case 'week':
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -326,13 +315,18 @@ const AlertsPageContent: React.FC = () => {
       }
       
       return true;
+    }).sort((a, b) => {
+      // Sort by acknowledgment (unacknowledged first), then by type (empty first), then by recency
+      if (a.acknowledged !== b.acknowledged) {
+        return a.acknowledged ? 1 : -1;
+      }
+      if (a.type !== b.type) {
+        return a.type === 'empty' ? -1 : 1;
+      }
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
   }, [alerts, filters]);
-
-  const handleAcknowledge = (alertId: string) => {
-    acknowledgeAlert(alertId);
-  };
-
+  
   const clearFilters = () => {
     setFilters({
       type: 'all',
@@ -341,68 +335,108 @@ const AlertsPageContent: React.FC = () => {
       dateRange: 'all'
     });
   };
-
+  
   const handleViewShelf = (shelfId: string) => {
-    // Navigate to shelf details or open modal
+    // TODO: Navigate to shelf details or open modal
     console.log('View shelf:', shelfId);
+  };
+  
+  // Stats
+  const stats = {
+    total: alerts.length,
+    unacknowledged: alerts.filter(a => !a.acknowledged).length,
+    empty: alerts.filter(a => a.type === 'empty').length,
+    low: alerts.filter(a => a.type === 'low').length
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* HEADER */}
-      <div className="bg-white border-b border-gray-200">
+      {/* MOBILE-OPTIMIZED HEADER */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
+            {/* LEFT SIDE - MOBILE NAV & TITLE */}
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* MOBILE NAVIGATION */}
+              <MobileNavigation />
+              
+              {/* BACK BUTTON FOR DESKTOP */}
               <Link 
                 href="/"
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="hidden md:flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ArrowLeft size={20} />
-                <span className="font-medium">Back to Dashboard</span>
+                <span>Back to Dashboard</span>
               </Link>
+              
+              <div className="hidden sm:block w-px h-6 bg-gray-300" />
+              
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">Inventory Alerts</h1>
+                <div className="text-sm text-gray-500">
+                  {filteredAlerts.length} of {stats.total} alerts
+                </div>
+              </div>
             </div>
             
+            {/* RIGHT SIDE - DESKTOP NAVIGATION & STATS */}
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-gray-900">Inventory Alerts</h1>
+              {/* DESKTOP NAVIGATION */}
+              <div className="hidden md:block">
+                <DesktopNavigation />
+              </div>
+              
+              {/* QUICK STATS */}
+              <div className="hidden lg:flex items-center gap-6">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-red-600">{stats.empty}</div>
+                  <div className="text-xs text-gray-500">Empty</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-yellow-600">{stats.low}</div>
+                  <div className="text-xs text-gray-500">Low Stock</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-orange-600">{stats.unacknowledged}</div>
+                  <div className="text-xs text-gray-500">Pending</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
+      
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* FILTERS */}
-        <FilterControls 
+        <FilterControls
           filters={filters}
           onFiltersChange={setFilters}
           onClearFilters={clearFilters}
         />
-
+        
         {/* ALERTS TABLE */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Alerts ({filteredAlerts.length})
-            </h2>
-          </div>
-          
           {filteredAlerts.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <div className="text-gray-500">
-                <AlertTriangle size={48} className="mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No alerts found</h3>
-                <p className="text-gray-500">
-                  {filters.type !== 'all' || filters.status !== 'all' || filters.search || filters.dateRange !== 'all'
-                    ? 'Try adjusting your filters to see more results.'
-                    : 'All inventory levels are within normal ranges.'
-                  }
-                </p>
-              </div>
+            <div className="text-center py-12">
+              <AlertTriangle size={48} className="mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No alerts found</h3>
+              <p className="text-gray-500 mb-4">
+                {filters.type !== 'all' || filters.status !== 'all' || filters.search || filters.dateRange !== 'all'
+                  ? 'Try adjusting your filters to see more results.'
+                  : 'All shelves are properly stocked!'}
+              </p>
+              {(filters.type !== 'all' || filters.status !== 'all' || filters.search || filters.dateRange !== 'all') && (
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Clear All Filters
+                </button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -423,11 +457,11 @@ const AlertsPageContent: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredAlerts.map((alert) => (
+                  {filteredAlerts.map(alert => (
                     <AlertRow
                       key={alert.id}
                       alert={alert}
-                      onAcknowledge={handleAcknowledge}
+                      onAcknowledge={acknowledgeAlert}
                       onViewShelf={handleViewShelf}
                     />
                   ))}
@@ -437,15 +471,12 @@ const AlertsPageContent: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* MOBILE NAVIGATION */}
-      <MobileNavigation />
     </div>
   );
 };
 
 // ============================================================================
-// PAGE COMPONENT
+// PAGE WRAPPER WITH PROVIDER
 // ============================================================================
 
 export default function AlertsPage() {

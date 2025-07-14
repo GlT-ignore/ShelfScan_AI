@@ -157,7 +157,7 @@ export function generateMockShelves(): Shelf[] {
  */
 function ensureDemoDistribution(shelves: Shelf[]): void {
   // Force at least 2 empty shelves
-  const emptyCount = shelves.filter(s => s.status === 'empty').length;
+  let emptyCount = shelves.filter(s => s.status === 'empty').length;
   if (emptyCount < 2) {
     for (let i = 0; i < 2 - emptyCount && i < shelves.length; i++) {
       const shelf = shelves[i];
@@ -169,7 +169,7 @@ function ensureDemoDistribution(shelves: Shelf[]): void {
   }
   
   // Force at least 3 low-stock shelves
-  const lowCount = shelves.filter(s => s.status === 'low').length;
+  let lowCount = shelves.filter(s => s.status === 'low').length;
   if (lowCount < 3) {
     for (let i = 0; i < 3 - lowCount && i < shelves.length; i++) {
       const shelf = shelves[Math.floor(Math.random() * shelves.length)];
@@ -491,7 +491,7 @@ export function simulateStaffAction(
   type: 'restock' | 'acknowledge' | 'rescan',
   targetId: string,
   shelves?: Shelf[]
-): { success: boolean; message: string; data?: object } {
+): { success: boolean; message: string; data?: any } {
   switch (type) {
     case 'restock':
       return {
@@ -654,7 +654,7 @@ export function validateMockShelves(shelves: Shelf[]): {
   }
   
   // Validate timestamps
-  shelves.forEach((shelf) => {
+  shelves.forEach((shelf, index) => {
     try {
       new Date(shelf.lastScanned);
     } catch {
@@ -876,7 +876,7 @@ export function runComprehensiveValidation(): {
  */
 export function generateDemoReport(): {
   timestamp: string;
-  dataOverview: Record<string, unknown>;
+  dataOverview: any;
   demoReadiness: {
     score: number;
     recommendations: string[];

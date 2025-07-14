@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { ScanUpdate } from '../types';
+import { Shelf, ScanUpdate } from '../types';
 import { 
   generateRandomScanUpdate, 
   applyScanUpdate, 
@@ -55,7 +55,7 @@ export const useRealTimeUpdates = (
   const isConnectedRef = useRef(false);
   const connectionStatusRef = useRef<'connected' | 'polling' | 'disconnected'>('disconnected');
 
-  const log = useCallback((message: string, data?: unknown) => {
+  const log = useCallback((message: string, data?: any) => {
     if (debug) {
       console.log(`[RealTimeUpdates] ${message}`, data || '');
     }

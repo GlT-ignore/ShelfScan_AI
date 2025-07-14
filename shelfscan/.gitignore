@@ -39,9 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Windsurf IDE files
-.windsurf/
-
-# Scripts directory (development only)
-scripts/
