@@ -17,6 +17,27 @@ export interface GoogleVisionResult {
   error?: string;
 }
 
+interface GoogleVisionApiObject {
+  name: string;
+  score: number;
+  boundingPoly?: {
+    vertices: Array<{ x: number; y: number }>;
+  };
+}
+
+interface GoogleVisionApiResponse {
+  responses?: Array<{
+    localizedObjectAnnotations?: GoogleVisionApiObject[];
+    error?: {
+      message: string;
+    };
+  }>;
+}
+
+interface TokenResponse {
+  access_token: string;
+}
+
 /**
  * Convert video frame to base64 image for API
  */
@@ -78,7 +99,7 @@ const getAccessToken = async (): Promise<string | null> => {
       throw new Error(`Token request failed: ${tokenResponse.status}`);
     }
 
-    const tokenData = await tokenResponse.json();
+    const tokenData: TokenResponse = await tokenResponse.json();
     return tokenData.access_token;
   } catch (error) {
     console.warn('Service account auth failed:', error);
@@ -151,7 +172,7 @@ export const detectObjectsWithGoogleVision = async (
       throw new Error(`Google Vision API error: ${response.status} - ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data: GoogleVisionApiResponse = await response.json();
     
     if (data.responses?.[0]?.error) {
       throw new Error(data.responses[0].error.message);
@@ -161,7 +182,7 @@ export const detectObjectsWithGoogleVision = async (
     
     return {
       success: true,
-      objects: objects.map((obj: any) => ({
+      objects: objects.map((obj: GoogleVisionApiObject) => ({
         name: obj.name.toLowerCase(),
         score: obj.score,
         boundingPoly: obj.boundingPoly,

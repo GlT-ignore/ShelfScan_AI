@@ -91,7 +91,7 @@ const Dashboard: React.FC = () => {
   const router = useRouter();
   
   // Initialize real-time updates hook
-  const { requestRescan, connectionStatus } = useRealTimeUpdates({
+  const { connectionStatus } = useRealTimeUpdates({
     debug: process.env.NODE_ENV === 'development',
     pollingInterval: 6000,
     wsUpdateInterval: 10000,

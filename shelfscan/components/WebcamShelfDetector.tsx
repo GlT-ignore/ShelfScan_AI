@@ -10,7 +10,6 @@ import { Camera, Square, X, Zap, AlertCircle } from 'lucide-react';
 import { useAppContext } from '../lib/context/AppContext';
 import {
   initializeModel,
-  detectObjects,
   mapObjectsToShelf,
   getWebcamStream,
   stopWebcamStream,
@@ -24,6 +23,12 @@ interface WebcamShelfDetectorProps {
   onClose: () => void;
   targetShelfId?: string; // For specific shelf rescanning
   isModelPreloaded?: boolean; // Whether model is already loaded
+}
+
+interface DetectedProduct {
+  product: string;
+  count: number;
+  threshold: number;
 }
 
 const WebcamShelfDetector: React.FC<WebcamShelfDetectorProps> = ({ isOpen, onClose, targetShelfId, isModelPreloaded = false }) => {
@@ -55,27 +60,7 @@ const WebcamShelfDetector: React.FC<WebcamShelfDetectorProps> = ({ isOpen, onClo
     }
   };
 
-  // Initialize model on component mount
-  useEffect(() => {
-    if (isOpen) {
-      if (isModelPreloaded && !isModelLoaded) {
-        // Model is preloaded, just start webcam
-        setIsModelLoaded(true);
-      } else if (!isModelLoaded && !isInitializing) {
-        // Model not preloaded, initialize it
-        initializeModelAsync();
-      }
-    }
-  }, [isOpen, isModelLoaded, isInitializing, isModelPreloaded]);
-
-  // Auto-start webcam when model is loaded and modal is open
-  useEffect(() => {
-    if (isOpen && isModelLoaded && !streamRef.current) {
-      startWebcam();
-    }
-  }, [isOpen, isModelLoaded]);
-
-  const initializeModelAsync = async () => {
+  const initializeModelAsync = useCallback(async () => {
     setIsInitializing(true);
     setError(null);
     
@@ -102,7 +87,27 @@ const WebcamShelfDetector: React.FC<WebcamShelfDetectorProps> = ({ isOpen, onClo
     } finally {
       setIsInitializing(false);
     }
-  };
+  }, []);
+
+  // Initialize model on component mount
+  useEffect(() => {
+    if (isOpen) {
+      if (isModelPreloaded && !isModelLoaded) {
+        // Model is preloaded, just start webcam
+        setIsModelLoaded(true);
+      } else if (!isModelLoaded && !isInitializing) {
+        // Model not preloaded, initialize it
+        initializeModelAsync();
+      }
+    }
+  }, [isOpen, isModelLoaded, isInitializing, isModelPreloaded, initializeModelAsync]);
+
+  // Auto-start webcam when model is loaded and modal is open
+  useEffect(() => {
+    if (isOpen && isModelLoaded && !streamRef.current) {
+      startWebcam();
+    }
+  }, [isOpen, isModelLoaded]);
 
   const stopWebcam = useCallback(() => {
     if (streamRef.current) {
@@ -279,7 +284,7 @@ const WebcamShelfDetector: React.FC<WebcamShelfDetectorProps> = ({ isOpen, onClo
         });
       }
       return acc;
-    }, [] as any[]);
+    }, [] as DetectedProduct[]);
 
     // Merge with existing products or replace if detected products exist
     const updatedItems = [...shelfToUpdate.items];

@@ -20,8 +20,27 @@ export interface HFDetectionResult {
   error?: string;
 }
 
-let model: any = null;
-let pipeline: any = null;
+interface HFPipeline {
+  (input: string | HTMLCanvasElement): Promise<HFModelResult[]>;
+}
+
+interface HFModelResult {
+  label: string;
+  score: number;
+  box: {
+    xmin: number;
+    ymin: number;
+    xmax: number;
+    ymax: number;
+  };
+}
+
+interface TransformersModule {
+  pipeline: (task: string, model: string, options?: { quantized: boolean }) => Promise<HFPipeline>;
+}
+
+let model: HFPipeline | null = null;
+let pipeline: HFPipeline | null = null;
 
 /**
  * Initialize Hugging Face object detection pipeline
@@ -33,10 +52,10 @@ export const initializeHFModel = async (): Promise<boolean> => {
     console.log('🤗 Loading Hugging Face object detection model...');
     
     // Dynamic import to avoid SSR issues
-    const { pipeline: createPipeline } = await import('@xenova/transformers');
+    const transformers = await import('@xenova/transformers') as TransformersModule;
     
     // Use DETR (Detection Transformer) - highly accurate object detection
-    pipeline = await createPipeline('object-detection', 'Xenova/detr-resnet-50', {
+    pipeline = await transformers.pipeline('object-detection', 'Xenova/detr-resnet-50', {
       quantized: false, // Higher accuracy
     });
     
@@ -73,9 +92,6 @@ export const detectObjectsWithHF = async (
     
     ctx.drawImage(videoElement, 0, 0);
     
-    // Convert canvas to image data for the model
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
     // Run detection
     console.log('🔍 Running Hugging Face detection...');
     const startTime = performance.now();
@@ -86,15 +102,15 @@ export const detectObjectsWithHF = async (
     console.log(`⚡ HF Detection completed in ${Math.round(endTime - startTime)}ms`);
     
     // Filter results with good confidence (0.3+ is quite good for DETR)
-    const filteredResults = results.filter((result: any) => result.score > 0.3);
+    const filteredResults = results.filter((result: HFModelResult) => result.score > 0.3);
     
     console.log(`🎯 HF detected ${filteredResults.length} objects:`, 
-      filteredResults.map((r: any) => `${r.label} (${Math.round(r.score * 100)}%)`).join(', ')
+      filteredResults.map((r: HFModelResult) => `${r.label} (${Math.round(r.score * 100)}%)`).join(', ')
     );
     
     return {
       success: true,
-      objects: filteredResults.map((result: any) => ({
+      objects: filteredResults.map((result: HFModelResult) => ({
         label: result.label.toLowerCase(),
         score: result.score,
         box: result.box
@@ -114,7 +130,7 @@ export const detectObjectsWithHF = async (
 /**
  * Convert HF detection format to our standard format
  */
-export const convertHFToStandardFormat = (hfObjects: HFDetectedObject[], videoWidth: number, videoHeight: number) => {
+export const convertHFToStandardFormat = (hfObjects: HFDetectedObject[]) => {
   return hfObjects.map(obj => ({
     class: obj.label,
     score: obj.score,
@@ -143,11 +159,7 @@ export const detectObjectsEnhancedHF = async (
     const hfResult = await detectObjectsWithHF(videoElement);
     
     if (hfResult.success && hfResult.objects.length > 0) {
-      const standardObjects = convertHFToStandardFormat(
-        hfResult.objects, 
-        videoElement.videoWidth, 
-        videoElement.videoHeight
-      );
+      const standardObjects = convertHFToStandardFormat(hfResult.objects);
       
       return {
         objects: standardObjects,
@@ -180,7 +192,7 @@ export const detectObjectsEnhancedHF = async (
         source: 'coco-ssd',
         success: true
       };
-    } catch (fallbackError) {
+    } catch {
       return {
         objects: [],
         source: 'coco-ssd',
