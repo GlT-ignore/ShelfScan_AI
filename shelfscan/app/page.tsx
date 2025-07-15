@@ -404,8 +404,8 @@ const Dashboard: React.FC = () => {
 
         {/* Demo Controller */}
         {showDemo && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center">
-            <div className="bg-slate-900/95 rounded-xl border border-slate-700/50 p-6 backdrop-blur-sm max-w-md w-full mx-4">
+          <div className="fixed bottom-20 right-6 z-40 w-80">
+            <div className="bg-slate-900/95 rounded-xl border border-slate-700/50 p-6 backdrop-blur-sm shadow-xl">
               <DemoController />
               <button
                 onClick={() => setShowDemo(false)}
