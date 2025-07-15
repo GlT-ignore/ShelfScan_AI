@@ -17,7 +17,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "ShelfScan AI - Smart Inventory Management",
-  description: "AI-powered shelf monitoring and inventory management system",
+  description: "AI-powered shelf scanning and inventory management system",
+  icons: {
+    icon: [
+      {
+        url: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>",
+        type: "image/svg+xml"
+      },
+      {
+        url: "/favicon.ico",
+        type: "image/x-icon"
+      }
+    ]
+  }
 };
 
 export default function RootLayout({
@@ -26,9 +38,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark bg-slate-950">
+    <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-950 text-slate-100`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AppProvider>
           {children}
