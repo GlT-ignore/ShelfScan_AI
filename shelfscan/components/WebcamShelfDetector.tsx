@@ -147,9 +147,9 @@ const WebcamShelfDetector: React.FC<WebcamShelfDetectorProps> = ({ isOpen, onClo
       // Convert to DetectedObject format
       const detectedObjects: DetectedObject[] = enhancedResult.objects.map(obj => ({
         class: obj.class,
-        score: obj.score,
-        bbox: (obj.bbox && obj.bbox.length >= 4 ? 
-          [obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3]] : 
+        score: obj.confidence,
+        bbox: (obj.box && obj.box.length >= 4 ? 
+          [obj.box[0], obj.box[1], obj.box[2] - obj.box[0], obj.box[3] - obj.box[1]] : 
           [0, 0, 100, 100]) as [number, number, number, number]
       }));
       
@@ -169,7 +169,7 @@ const WebcamShelfDetector: React.FC<WebcamShelfDetectorProps> = ({ isOpen, onClo
       // Debug: Log all detected objects regardless of confidence
       if (enhancedResult.objects.length > 0) {
         console.log('🔍 Detected objects:', enhancedResult.objects.map(obj => 
-          `${obj.class} (${Math.round(obj.score * 100)}%)`
+          `${obj.class} (${Math.round(obj.confidence * 100)}%)`
         ).join(', '));
       }
       
