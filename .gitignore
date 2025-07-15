@@ -1,5 +1,6 @@
 .env  
 .cursor/  
+.windsurf/
 .taskmaster/  
 node_modules/  
 .next/  
@@ -10,4 +11,9 @@ coverage/
 .vscode/  
 .idea/  
 .DS_Store  
-Thumbs.db 
+Thumbs.db
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!components.json 

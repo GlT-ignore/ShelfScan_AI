@@ -95,16 +95,10 @@ const ShelfDetailModal: React.FC<ShelfDetailModalProps> = ({
             </div>
           </div>
 
-          {/* PRODUCT INFO */}
+          {/* SHELF INFO */}
           <div className="space-y-3">
-            <h3 className="font-medium text-gray-900">Product Information</h3>
+            <h3 className="font-medium text-gray-900">Shelf Information</h3>
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Package size={16} className="text-gray-400" />
-                <span className="font-medium">
-                  {shelf.items.length > 0 ? shelf.items[0].product : 'No products'}
-                </span>
-              </div>
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-gray-400" />
                 <span className="text-gray-600">Aisle {shelf.aisle}</span>
@@ -116,6 +110,61 @@ const ShelfDetailModal: React.FC<ShelfDetailModalProps> = ({
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* ALL PRODUCTS */}
+          <div className="space-y-3">
+            <h3 className="font-medium text-gray-900">All Products ({shelf.items.length})</h3>
+            {shelf.items.length > 0 ? (
+              <div className="space-y-2">
+                {shelf.items.map((item, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Package size={16} className="text-gray-400" />
+                        <span className="font-medium text-gray-900">{item.product}</span>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        item.count === 0 ? 'bg-red-100 text-red-800' :
+                        item.count < item.threshold ? 'bg-amber-100 text-amber-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {item.count === 0 ? 'Empty' :
+                         item.count < item.threshold ? 'Low Stock' : 'In Stock'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Current Stock:</span>
+                        <span className="ml-2 font-semibold text-gray-900">{item.count} units</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Threshold:</span>
+                        <span className="ml-2 font-semibold text-gray-900">{item.threshold} units</span>
+                      </div>
+                    </div>
+                    {/* Individual product actions */}
+                    {item.count === 0 && (
+                      <div className="mt-3">
+                        <button
+                          onClick={() => {
+                            onMarkRestocked(shelf.id, item.product);
+                            onClose();
+                          }}
+                          className="w-full px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                        >
+                          Mark {item.product} Restocked
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
+                No products assigned to this shelf
+              </div>
+            )}
           </div>
 
           {/* STOCK LEVEL */}
@@ -138,34 +187,20 @@ const ShelfDetailModal: React.FC<ShelfDetailModalProps> = ({
             </div>
           )}
 
-          {/* ACTIONS */}
+          {/* SHELF ACTIONS */}
           <div className="space-y-3">
-            <h3 className="font-medium text-gray-900">Actions</h3>
+            <h3 className="font-medium text-gray-900">Shelf Actions</h3>
             <div className="space-y-2">
-              {shelf.status === 'empty' && (
-                <button
-                  onClick={() => {
-                    onMarkRestocked(shelf.id, shelf.items.length > 0 ? shelf.items[0].product : 'Unknown product');
-                    onClose();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white 
-                           rounded-lg hover:bg-green-700 transition-colors font-medium"
-                >
-                  <CheckCircle size={16} />
-                  Mark as Restocked
-                </button>
-              )}
-              
               <button
                 onClick={() => {
                   onRequestRescan(shelf.id);
-                  onClose();
+                  // Don't close modal - user will use camera and close manually
                 }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white 
-                         rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white 
+                         rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 font-medium shadow-lg shadow-blue-500/25"
               >
                 <RotateCcw size={16} />
-                Request Rescan
+                Rescan
               </button>
             </div>
           </div>

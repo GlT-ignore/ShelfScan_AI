@@ -5,17 +5,20 @@
  * Uses exact design from magicpath-project with integrated real-time functionality
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AlertTriangle, 
   CheckCircle, 
   Eye, 
-  RotateCcw 
+  RotateCcw,
+  Camera 
 } from 'lucide-react';
 import { useShelves, useAlerts, useStaffActions } from '../lib/context/AppContext';
 import { useRealTimeUpdates } from '../lib/hooks/useRealTimeUpdates';
 import ShelfDetailModal from '../components/ShelfDetailModal';
 import DemoController from '../components/DemoController';
+import WebcamShelfDetector from '../components/WebcamShelfDetector';
+import { initializeModel } from '../lib/camera/objectDetection';
 import type { Shelf } from '../lib/types';
 import { useRouter } from 'next/navigation';
 
@@ -100,7 +103,27 @@ const Dashboard: React.FC = () => {
   const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [targetShelfId, setTargetShelfId] = useState<string | null>(null);
+  const [isModelPreloaded, setIsModelPreloaded] = useState(false);
   
+  // Pre-initialize camera model on app load
+  useEffect(() => {
+    const preloadModel = async () => {
+      try {
+        const success = await initializeModel();
+        setIsModelPreloaded(success);
+        if (success) {
+          console.log('🎯 Camera model preloaded - instant scanning ready!');
+        }
+      } catch (error) {
+        console.error('Failed to preload camera model:', error);
+      }
+    };
+    
+    preloadModel();
+  }, []);
+
   // Get active alerts (unacknowledged)
   const activeAlerts = alerts.filter(alert => !alert.acknowledged).slice(0, 3);
   const remainingAlerts = alerts.filter(alert => !alert.acknowledged).length - 3;
@@ -129,11 +152,9 @@ const Dashboard: React.FC = () => {
   };
   
   const handleRequestRescan = async (shelfId: string) => {
-    try {
-      await requestRescan(shelfId);
-    } catch (error) {
-      console.error('Failed to rescan shelf:', error);
-    }
+    // Open camera for targeted shelf rescanning
+    setTargetShelfId(shelfId);
+    setIsCameraOpen(true);
   };
 
   const handleAcknowledgeAlert = (alertId: string) => {
@@ -167,6 +188,16 @@ const Dashboard: React.FC = () => {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsCameraOpen(true)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-lg hover:from-purple-700 hover:to-purple-600 transition-all duration-200 flex items-center gap-2 shadow-lg shadow-purple-500/25 relative"
+            >
+              <Camera className="w-4 h-4" />
+              <span>Live Scan</span>
+              {isModelPreloaded && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+              )}
+            </button>
             <button 
               onClick={() => router.push('/')}
               className="px-4 py-2 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-500/10 transition-colors backdrop-blur-sm"
@@ -403,6 +434,17 @@ const Dashboard: React.FC = () => {
             onRequestRescan={handleRequestRescan}
           />
         )}
+
+        {/* Webcam Modal */}
+        <WebcamShelfDetector
+          isOpen={isCameraOpen}
+          onClose={() => {
+            setIsCameraOpen(false);
+            setTargetShelfId(null);
+          }}
+          targetShelfId={targetShelfId || undefined}
+          isModelPreloaded={isModelPreloaded}
+        />
       </div>
     </div>
   );
